@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <!-- Background circle (optional/transparent) -->
+  <defs>
+    <style>
+      .cls-terracotta { fill: #C85328; }
+      .cls-green { fill: #1B4332; }
+      .cls-ochre { fill: #D8962B; }
+      .cls-cream { fill: #FBF4EA; stroke: #D8962B; stroke-width: 2; }
+      .cls-gold-tree { fill: #B37D2A; stroke: #B37D2A; stroke-width: 1.5; }
+      .cls-brand-title { font-family: 'Fraunces', 'Cinzel', Georgia, serif; font-size: 56px; font-weight: 700; letter-spacing: 4px; fill: #2B1D16; }
+      .cls-subtitle { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 19px; font-weight: 600; fill: #3E2723; }
+      .cls-tagline { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 17px; fill: #8A4B2D; }
+    </style>
+  </defs>
+
+  <!-- Group for Emblem -->
+  <g id="Emblem" transform="translate(0, 10)">
+    <!-- Top Terracotta Petals -->
+    <path class="cls-terracotta" d="M 215,185 C 195,140 210,80 250,45 C 235,90 230,140 215,185 Z" />
+    <path class="cls-terracotta" d="M 285,185 C 305,140 290,80 250,45 C 265,90 270,140 285,185 Z" />
+
+    <!-- Outer Golden Ochre Flanking Petals -->
+    <path class="cls-ochre" d="M 175,225 C 120,200 90,145 130,95 C 155,140 165,185 175,225 Z" />
+    <path class="cls-ochre" d="M 325,225 C 380,200 410,145 370,95 C 345,140 335,185 325,225 Z" />
+
+    <!-- Green Upper Left & Right Petals -->
+    <path class="cls-green" d="M 195,230 C 130,200 120,120 175,85 C 190,135 195,180 195,230 Z" />
+    <path class="cls-green" d="M 305,230 C 370,200 380,120 325,85 C 310,135 305,180 305,230 Z" />
+
+    <!-- Lower Green Broad Petals / Base -->
+    <path class="cls-green" d="M 250,265 C 170,265 105,220 95,160 C 145,165 200,215 250,265 Z" />
+    <path class="cls-green" d="M 250,265 C 330,265 395,220 405,160 C 355,165 300,215 250,265 Z" />
+
+    <!-- Lower Golden Ochre Accent Leaf (Right) -->
+    <path class="cls-ochre" d="M 250,265 C 320,265 385,225 405,160 C 370,215 310,255 250,265 Z" />
+
+    <!-- Center Ivory Almond/Egg Core -->
+    <path class="cls-cream" d="M 250,60 C 295,115 315,190 250,270 C 185,190 205,115 250,60 Z" />
+
+    <!-- Tree of Life in Center -->
+    <g id="TreeOfLife">
+      <!-- Main Trunk -->
+      <path class="cls-gold-tree" d="M 248,265 L 248,160 C 248,150 252,150 252,160 L 252,265 L 250,265 Z" />
+      <polygon class="cls-gold-tree" points="244,265 256,265 250,250" />
+
+      <!-- Center Tip Leaf -->
+      <path class="cls-gold-tree" d="M 250,105 C 247,112 247,118 250,125 C 253,118 253,112 250,105 Z" />
+
+      <!-- Level 1 Upper Branches -->
+      <path class="cls-gold-tree" d="M 250,135 Q 242,125 238,118" fill="none" />
+      <path class="cls-gold-tree" d="M 238,118 C 235,114 233,120 238,124 C 241,121 240,119 238,118 Z" />
+      
+      <path class="cls-gold-tree" d="M 250,135 Q 258,125 262,118" fill="none" />
+      <path class="cls-gold-tree" d="M 262,118 C 265,114 267,120 262,124 C 259,121 260,119 262,118 Z" />
+
+      <!-- Level 2 Branches -->
+      <path class="cls-gold-tree" d="M 250,150 Q 235,138 226,130" fill="none" />
+      <path class="cls-gold-tree" d="M 226,130 C 222,127 222,133 226,136 C 229,134 228,131 226,130 Z" />
+      <path class="cls-gold-tree" d="M 238,144 C 234,141 234,147 238,150 Z" />
+
+      <path class="cls-gold-tree" d="M 250,150 Q 265,138 274,130" fill="none" />
+      <path class="cls-gold-tree" d="M 274,130 C 278,127 278,133 274,136 C 271,134 272,131 274,130 Z" />
+      <path class="cls-gold-tree" d="M 262,144 C 266,141 266,147 262,150 Z" />
+
+      <!-- Level 3 Branches -->
+      <path class="cls-gold-tree" d="M 250,175 Q 230,160 218,150" fill="none" />
+      <path class="cls-gold-tree" d="M 218,150 C 214,146 213,153 218,157 Z" />
+      <path class="cls-gold-tree" d="M 230,166 C 225,162 225,169 230,173 Z" />
+
+      <path class="cls-gold-tree" d="M 250,175 Q 270,160 282,150" fill="none" />
+      <path class="cls-gold-tree" d="M 282,150 C 286,146 287,153 282,157 Z" />
+      <path class="cls-gold-tree" d="M 270,166 C 275,162 275,169 270,173 Z" />
+
+      <!-- Level 4 Branches -->
+      <path class="cls-gold-tree" d="M 250,205 Q 225,190 216,182" fill="none" />
+      <path class="cls-gold-tree" d="M 216,182 C 211,178 211,185 216,189 Z" />
+      <path class="cls-gold-tree" d="M 230,197 C 224,193 224,200 230,204 Z" />
+
+      <path class="cls-gold-tree" d="M 250,205 Q 275,190 284,182" fill="none" />
+      <path class="cls-gold-tree" d="M 284,182 C 289,178 289,185 284,189 Z" />
+      <path class="cls-gold-tree" d="M 270,197 C 276,193 276,200 270,204 Z" />
+
+      <!-- Level 5 Low Branches -->
+      <path class="cls-gold-tree" d="M 250,230 Q 232,220 225,215" fill="none" />
+      <path class="cls-gold-tree" d="M 225,215 C 221,211 221,218 226,222 Z" />
+      <path class="cls-gold-tree" d="M 250,230 Q 268,220 275,215" fill="none" />
+      <path class="cls-gold-tree" d="M 275,215 C 279,211 279,218 274,222 Z" />
+    </g>
+
+    <!-- Decorative Accent Dots -->
+    <!-- Crown Apex -->
+    <circle cx="250" cy="24" r="7" class="cls-green" />
+    <circle cx="250" cy="45" r="4.5" class="cls-ochre" />
+
+    <!-- Left Flank Dots -->
+    <circle cx="106" cy="120" r="5.5" class="cls-ochre" />
+    <circle cx="114" cy="140" r="5" class="cls-green" />
+
+    <!-- Right Flank Dots -->
+    <circle cx="394" cy="120" r="5.5" class="cls-terracotta" />
+    <circle cx="386" cy="140" r="5" class="cls-green" />
+  </g>
+
+  <!-- Typography: KALAKRITI -->
+  <text x="250" y="340" text-anchor="middle" class="cls-brand-title">KALAKRITI</text>
+
+  <!-- Subtitle -->
+  <text x="250" y="375" text-anchor="middle" class="cls-subtitle">Empowering Artisans. Enriching Lives.</text>
+
+  <!-- Golden Divider with Center Lotus -->
+  <g id="Divider" transform="translate(0, 395)">
+    <line x1="85" y1="12" x2="230" y2="12" stroke="#D8962B" stroke-width="1.5" />
+    <!-- Center Mini Lotus Flower -->
+    <path class="cls-ochre" d="M 250,0 C 255,6 257,11 250,20 C 243,11 245,6 250,0 Z" />
+    <path class="cls-ochre" d="M 245,8 C 238,10 236,15 241,19 C 246,18 247,14 245,8 Z" />
+    <path class="cls-ochre" d="M 255,8 C 262,10 264,15 259,19 C 254,18 253,14 255,8 Z" />
+    <line x1="270" y1="12" x2="415" y2="12" stroke="#D8962B" stroke-width="1.5" />
+  </g>
+
+  <!-- Bottom Tagline -->
+  <text x="250" y="440" text-anchor="middle" class="cls-tagline">— From Handmade Craft to Digital Market. —</text>
+</svg>

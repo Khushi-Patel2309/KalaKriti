@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
 import { Order, ShippingDetails } from '../types';
 import { DeliveryTracking } from './DeliveryTracking';
-import { Package, Truck, MapPin, Phone, User, Home, Clock, CheckCircle2, ChevronRight, Plus, Edit2, ShieldCheck, ArrowRight } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import {
+  Package,
+  Truck,
+  MapPin,
+  Phone,
+  User,
+  Home,
+  ChevronRight,
+  Edit2,
+} from 'lucide-react';
 
 interface CustomerOrdersViewProps {
   orders: Order[];
@@ -18,6 +28,7 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
   savedShippingDetails,
   onUpdateShippingDetails,
 }) => {
+  const { language, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'tracking' | 'shipping-details'>('tracking');
   const [selectedTrackingOrder, setSelectedTrackingOrder] = useState<Order | null>(null);
 
@@ -39,8 +50,18 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
   );
 
   const handleSaveAddress = () => {
-    if (!addressForm.fullName || !addressForm.phone || !addressForm.addressLine1 || !addressForm.city || !addressForm.pincode) {
-      alert('Please fill in required fields: Name, Phone, Address, City and PIN Code.');
+    if (
+      !addressForm.fullName ||
+      !addressForm.phone ||
+      !addressForm.addressLine1 ||
+      !addressForm.city ||
+      !addressForm.pincode
+    ) {
+      alert(
+        language === 'hi'
+          ? 'कृपया सभी आवश्यक फ़ील्ड भरें: नाम, फ़ोन, पता, शहर और पिन कोड।'
+          : 'Please fill in required fields: Name, Phone, Address, City and PIN Code.'
+      );
       return;
     }
     if (onUpdateShippingDetails) {
@@ -66,14 +87,12 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
       <div className="p-6 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div>
           <span className="text-xs uppercase tracking-wider font-bold text-[#8B5E34]">
-            Customer Account & Deliveries
+            {language === 'hi' ? 'ग्राहक खाता एवं डिलीवरी' : 'Customer Account & Deliveries'}
           </span>
           <h1 className="text-2xl font-bold font-serif text-[#3E2723] mt-1">
-            My Orders, Tracking & Shipping Details
+            {t.myOrdersTitle}
           </h1>
-          <p className="text-xs text-[#8C7355]">
-            Live courier tracking for your handmade orders and saved shipping addresses.
-          </p>
+          <p className="text-xs text-[#8C7355]">{t.myOrdersSubtitle}</p>
         </div>
 
         {/* Tab Selector */}
@@ -87,7 +106,7 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                 : 'text-[#6D5843] hover:text-[#3E2723]'
             }`}
           >
-            <Truck className="w-4 h-4" /> Live Tracking & Orders ({orders.length})
+            <Truck className="w-4 h-4" /> {t.myOrdersTitle} ({orders.length})
           </button>
           <button
             type="button"
@@ -98,7 +117,7 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                 : 'text-[#6D5843] hover:text-[#3E2723]'
             }`}
           >
-            <Home className="w-4 h-4" /> My Shipping Address
+            <Home className="w-4 h-4" /> {t.deliveryAddress}
           </button>
         </div>
       </div>
@@ -109,16 +128,18 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
           {orders.length === 0 ? (
             <div className="p-12 text-center bg-white border border-[#E6D5C3] rounded-3xl space-y-3">
               <Package className="w-12 h-12 text-[#A68B6D] mx-auto opacity-70" />
-              <h3 className="text-lg font-bold font-serif text-[#3E2723]">No Orders Yet</h3>
+              <h3 className="text-lg font-bold font-serif text-[#3E2723]">{t.noOrdersYet}</h3>
               <p className="text-xs text-[#8C7355] max-w-sm mx-auto">
-                Explore our catalog of handwoven textiles, pottery, and jewelry made by verified Indian artisans.
+                {language === 'hi'
+                  ? 'सत्यापित भारतीय कारीगरों द्वारा बनाए गए वस्त्रों, मिट्टी के बर्तनों और आभूषणों को देखें।'
+                  : 'Explore our catalog of handwoven textiles, pottery, and jewelry made by verified Indian artisans.'}
               </p>
               <button
                 type="button"
                 onClick={onNavigateToShop}
                 className="px-5 py-2.5 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl shadow-xs"
               >
-                Browse Handmade Crafts →
+                {language === 'hi' ? 'हस्तशिल्प उत्पाद देखें →' : 'Browse Handmade Crafts →'}
               </button>
             </div>
           ) : (
@@ -131,7 +152,9 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E6D5C3]">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#3E2723]">Tracking: #{order.trackingId}</span>
+                      <span className="font-bold text-sm text-[#3E2723]">
+                        {t.orderId}: #{order.trackingId}
+                      </span>
                       <span
                         className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
                           order.status === 'Delivered'
@@ -143,7 +166,12 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                       </span>
                     </div>
                     <p className="text-[11px] text-[#8C7355] mt-0.5">
-                      Courier: <strong className="text-[#3E2723]">{order.courierPartner}</strong> · Placed on {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {t.courierPartner}:{' '}
+                      <strong className="text-[#3E2723]">{order.courierPartner}</strong> ·{' '}
+                      {new Date(order.createdAt).toLocaleDateString(
+                        language === 'hi' ? 'hi-IN' : 'en-IN',
+                        { day: 'numeric', month: 'short', year: 'numeric' }
+                      )}
                     </p>
                   </div>
 
@@ -156,7 +184,8 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                       onClick={() => setSelectedTrackingOrder(order)}
                       className="px-4 py-2 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl shadow-xs flex items-center gap-1"
                     >
-                      <Truck className="w-3.5 h-3.5" /> View Live Tracking & Delivery Details <ChevronRight className="w-3.5 h-3.5" />
+                      <Truck className="w-3.5 h-3.5" /> {t.trackOrderBtn}{' '}
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -165,19 +194,28 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   {/* Items */}
                   <div className="space-y-2">
-                    <strong className="text-[11px] uppercase text-[#8C7355] block">Ordered Products:</strong>
+                    <strong className="text-[11px] uppercase text-[#8C7355] block">
+                      {language === 'hi' ? 'ऑर्डर किए गए उत्पाद:' : 'Ordered Products:'}
+                    </strong>
                     {order.items.map((item, idx) => (
                       <div key={idx} className="flex items-center gap-2.5">
                         <div className="w-9 h-9 rounded-lg bg-[#F5F1EE] border border-[#E6D5C3] flex items-center justify-center shrink-0">
                           {item.image ? (
-                            <img src={item.image} alt={item.name} className="w-full h-full object-cover rounded-lg" />
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
                           ) : (
                             <span>{item.emoji}</span>
                           )}
                         </div>
                         <div className="truncate">
                           <p className="font-semibold text-[#3E2723] truncate">{item.name}</p>
-                          <p className="text-[10px] text-[#8C7355]">By {item.artisanName} · Qty: {item.qty}</p>
+                          <p className="text-[10px] text-[#8C7355]">
+                            {language === 'hi' ? 'कारीगर' : 'By'} {item.artisanName} · {t.quantity}
+                            : {item.qty}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -185,13 +223,18 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
 
                   {/* Delivery destination snippet */}
                   <div className="p-3 bg-[#FAF9F7] rounded-2xl border border-[#E6D5C3] space-y-1">
-                    <strong className="text-[10px] uppercase text-[#8B5E34] block">Delivering To:</strong>
-                    <p className="font-bold text-[#3E2723]">{order.shippingDetails.fullName} ({order.shippingDetails.phone})</p>
+                    <strong className="text-[10px] uppercase text-[#8B5E34] block">
+                      {language === 'hi' ? 'डिलीवरी का पता:' : 'Delivering To:'}
+                    </strong>
+                    <p className="font-bold text-[#3E2723]">
+                      {order.shippingDetails.fullName} ({order.shippingDetails.phone})
+                    </p>
                     <p className="text-[#6D5843] text-[11px] line-clamp-1">
-                      {order.shippingDetails.addressLine1}, {order.shippingDetails.city}, {order.shippingDetails.state} - {order.shippingDetails.pincode}
+                      {order.shippingDetails.addressLine1}, {order.shippingDetails.city},{' '}
+                      {order.shippingDetails.state} - {order.shippingDetails.pincode}
                     </p>
                     <p className="text-[10px] text-[#8B5E34] font-semibold mt-1">
-                      ETA: {order.estimatedDelivery}
+                      {t.estimatedArrival}: {order.estimatedDelivery}
                     </p>
                   </div>
                 </div>
@@ -207,10 +250,12 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
           <div className="flex items-center justify-between pb-3 border-b border-[#E6D5C3]">
             <div>
               <h3 className="text-base font-bold font-serif text-[#3E2723] flex items-center gap-2">
-                <Home className="w-5 h-5 text-[#8B5E34]" /> Customer Delivery & Shipping Address
+                <Home className="w-5 h-5 text-[#8B5E34]" /> {t.deliveryAddress}
               </h3>
               <p className="text-xs text-[#8C7355]">
-                This address will be automatically used when checking out and shared directly with the artisan for delivery fulfillment.
+                {language === 'hi'
+                  ? 'यह पता चेकआउट करते समय स्वचालित रूप से उपयोग किया जाएगा और कारीगर को भेजा जाएगा।'
+                  : 'This address will be automatically used when checking out and shared directly with the artisan for delivery fulfillment.'}
               </p>
             </div>
             {!isEditingAddress && (
@@ -219,7 +264,8 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                 onClick={() => setIsEditingAddress(true)}
                 className="px-3.5 py-1.5 text-xs font-bold text-[#3E2723] bg-[#FAF9F7] border border-[#E6D5C3] hover:bg-[#F5F1EE] rounded-xl flex items-center gap-1.5"
               >
-                <Edit2 className="w-3.5 h-3.5 text-[#8B5E34]" /> Edit Shipping Info
+                <Edit2 className="w-3.5 h-3.5 text-[#8B5E34]" />{' '}
+                {language === 'hi' ? 'पता संपादित करें' : 'Edit Shipping Info'}
               </button>
             )}
           </div>
@@ -228,18 +274,20 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className="font-bold text-[#3E2723] block mb-1">Recipient Full Name *</label>
+                  <label className="font-bold text-[#3E2723] block mb-1">{t.fullName} *</label>
                   <input
                     type="text"
                     value={addressForm.fullName}
                     onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
-                    placeholder="e.g. Pooja Sharma"
+                    placeholder={language === 'hi' ? 'उदा. पूजा शर्मा' : 'e.g. Pooja Sharma'}
                     className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl text-[#3E2723]"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-[#3E2723] block mb-1">Mobile Phone Number (for courier SMS) *</label>
+                  <label className="font-bold text-[#3E2723] block mb-1">
+                    {t.phoneNumber} *
+                  </label>
                   <input
                     type="tel"
                     value={addressForm.phone}
@@ -250,62 +298,74 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="font-bold text-[#3E2723] block mb-1">Flat / House No. / Building / Street *</label>
+                  <label className="font-bold text-[#3E2723] block mb-1">
+                    {t.addressLine1} *
+                  </label>
                   <input
                     type="text"
                     value={addressForm.addressLine1}
-                    onChange={(e) => setAddressForm({ ...addressForm, addressLine1: e.target.value })}
-                    placeholder="e.g. Flat 402, Lotus Residency, 14th Main Road"
+                    onChange={(e) =>
+                      setAddressForm({ ...addressForm, addressLine1: e.target.value })
+                    }
+                    placeholder={
+                      language === 'hi'
+                        ? 'मकान / फ्लैट नंबर और मार्ग'
+                        : 'e.g. Flat 402, Lotus Residency, 14th Main Road'
+                    }
                     className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl text-[#3E2723]"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-[#3E2723] block mb-1">Area / Locality / Sector</label>
+                  <label className="font-bold text-[#3E2723] block mb-1">
+                    {t.addressLine2}
+                  </label>
                   <input
                     type="text"
                     value={addressForm.addressLine2 || ''}
-                    onChange={(e) => setAddressForm({ ...addressForm, addressLine2: e.target.value })}
-                    placeholder="e.g. Indiranagar 2nd Stage"
+                    onChange={(e) =>
+                      setAddressForm({ ...addressForm, addressLine2: e.target.value })
+                    }
+                    placeholder={language === 'hi' ? 'इलाका / क्षेत्र' : 'e.g. Indiranagar 2nd Stage'}
                     className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl text-[#3E2723]"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-[#3E2723] block mb-1">Landmark</label>
+                  <label className="font-bold text-[#3E2723] block mb-1">{t.landmark}</label>
                   <input
                     type="text"
                     value={addressForm.landmark || ''}
                     onChange={(e) => setAddressForm({ ...addressForm, landmark: e.target.value })}
-                    placeholder="e.g. Near BDA Complex"
+                    placeholder={language === 'hi' ? 'नजदीकी स्थान' : 'e.g. Near BDA Complex'}
                     className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl text-[#3E2723]"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-[#3E2723] block mb-1">City / Town *</label>
+                  <label className="font-bold text-[#3E2723] block mb-1">{t.city} *</label>
                   <input
                     type="text"
                     value={addressForm.city}
                     onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
-                    placeholder="e.g. Bengaluru"
+                    placeholder={language === 'hi' ? 'शहर' : 'e.g. Bengaluru'}
                     className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl text-[#3E2723]"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-[#3E2723] block mb-1">State *</label>
+                  <label className="font-bold text-[#3E2723] block mb-1">{t.state} *</label>
                   <input
                     type="text"
                     value={addressForm.state}
                     onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
-                    placeholder="e.g. Karnataka"
+                    placeholder={language === 'hi' ? 'राज्य' : 'e.g. Karnataka'}
                     className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl text-[#3E2723]"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-[#3E2723] block mb-1">PIN Code *</label>
+                  <label className="font-bold text-[#3E2723] block mb-1">{t.pincode} *</label>
                   <input
                     type="text"
                     value={addressForm.pincode}
@@ -316,11 +376,19 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="font-bold text-[#3E2723] block mb-1">Delivery Instructions for Courier / Artisan</label>
+                  <label className="font-bold text-[#3E2723] block mb-1">
+                    {t.deliveryNotes}
+                  </label>
                   <textarea
                     value={addressForm.deliveryNotes || ''}
-                    onChange={(e) => setAddressForm({ ...addressForm, deliveryNotes: e.target.value })}
-                    placeholder="e.g. Please ring bell twice, fragile handmade package..."
+                    onChange={(e) =>
+                      setAddressForm({ ...addressForm, deliveryNotes: e.target.value })
+                    }
+                    placeholder={
+                      language === 'hi'
+                        ? 'कूरियर के लिए विशेष निर्देश...'
+                        : 'e.g. Please ring bell twice, fragile handmade package...'
+                    }
                     rows={2}
                     className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl text-[#3E2723]"
                   />
@@ -333,14 +401,14 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                   onClick={() => setIsEditingAddress(false)}
                   className="px-4 py-2 text-xs font-semibold text-[#8C7355]"
                 >
-                  Cancel
+                  {language === 'hi' ? 'रद्द करें' : 'Cancel'}
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveAddress}
                   className="px-5 py-2.5 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl shadow-xs"
                 >
-                  Save Shipping Address
+                  {language === 'hi' ? 'डिलीवरी पता सहेजें' : 'Save Shipping Address'}
                 </button>
               </div>
             </div>
@@ -350,13 +418,17 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                 <User className="w-4 h-4 text-[#8B5E34]" />
                 <span className="font-bold text-sm text-[#3E2723]">{addressForm.fullName}</span>
                 <span className="text-[10px] font-semibold bg-[#8B5E34] text-white px-2 py-0.2 rounded-full">
-                  Primary Delivery Address
+                  {language === 'hi' ? 'प्राथमिक डिलीवरी पता' : 'Primary Delivery Address'}
                 </span>
               </div>
 
               <div className="flex items-center gap-2 text-[#6D5843]">
                 <Phone className="w-3.5 h-3.5 text-[#8C7355]" />
-                <span>Contact: <strong className="text-[#3E2723]">{addressForm.phone}</strong> {addressForm.email ? `(${addressForm.email})` : ''}</span>
+                <span>
+                  {t.phoneNumber}:{' '}
+                  <strong className="text-[#3E2723]">{addressForm.phone}</strong>{' '}
+                  {addressForm.email ? `(${addressForm.email})` : ''}
+                </span>
               </div>
 
               <div className="flex items-start gap-2 text-[#3E2723] pt-1">
@@ -367,13 +439,18 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                   <p className="font-bold text-[#8B5E34]">
                     {addressForm.city}, {addressForm.state} — PIN: {addressForm.pincode}
                   </p>
-                  {addressForm.landmark && <p className="text-[11px] text-[#8C7355]">Landmark: {addressForm.landmark}</p>}
+                  {addressForm.landmark && (
+                    <p className="text-[11px] text-[#8C7355]">
+                      {t.landmark}: {addressForm.landmark}
+                    </p>
+                  )}
                 </div>
               </div>
 
               {addressForm.deliveryNotes && (
                 <p className="p-2.5 bg-white rounded-xl border border-[#E6D5C3] text-[11px] text-[#6D5843]">
-                  <strong className="text-[#3E2723]">Special Instructions:</strong> {addressForm.deliveryNotes}
+                  <strong className="text-[#3E2723]">{t.deliveryNotes}:</strong>{' '}
+                  {addressForm.deliveryNotes}
                 </p>
               )}
             </div>

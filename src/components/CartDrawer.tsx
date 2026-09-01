@@ -1,6 +1,7 @@
 import React from 'react';
-import { CartItem, Product } from '../types';
-import { ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, Truck } from 'lucide-react';
+import { CartItem } from '../types';
+import { useLanguage } from '../context/LanguageContext';
+import { ShoppingBag, X, Trash2, ArrowRight } from 'lucide-react';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onRemoveItem,
   onProceedToCheckout,
 }) => {
+  const { language, t } = useLanguage();
   if (!isOpen) return null;
 
   const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
@@ -30,7 +32,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         <div className="flex items-center justify-between px-6 py-4 bg-[#F5F1EE] border-b border-[#E6D5C3] shrink-0">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-[#8B5E34]" />
-            <h2 className="text-base font-bold font-serif text-[#3E2723]">Handcrafted Bag ({items.length})</h2>
+            <h2 className="text-base font-bold font-serif text-[#3E2723]">
+              {t.yourBag} ({items.length})
+            </h2>
           </div>
           <button
             type="button"
@@ -46,10 +50,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           {items.length === 0 ? (
             <div className="py-20 text-center space-y-3">
               <ShoppingBag className="w-12 h-12 mx-auto text-[#A68B6D]/50" />
-              <h3 className="text-base font-bold font-serif text-[#3E2723]">Your Bag is Empty</h3>
-              <p className="text-xs text-[#8C7355] max-w-xs mx-auto">
-                Discover master artisans from across India and add authentic handwoven pieces to your bag.
-              </p>
+              <h3 className="text-base font-bold font-serif text-[#3E2723]">{t.bagEmpty}</h3>
+              <p className="text-xs text-[#8C7355] max-w-xs mx-auto">{t.bagEmptySub}</p>
             </div>
           ) : (
             items.map((item) => (
@@ -73,7 +75,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <h4 className="text-xs font-bold text-[#3E2723] leading-snug line-clamp-1">
                     {item.product.name}
                   </h4>
-                  <p className="text-[10px] text-[#8C7355]">By {item.product.artisanName}</p>
+                  <p className="text-[10px] text-[#8C7355]">
+                    {language === 'hi' ? 'कारीगर' : 'By'} {item.product.artisanName}
+                  </p>
                   <p className="text-xs font-bold font-serif text-[#8B5E34] mt-1">
                     ₹{item.product.price.toLocaleString('en-IN')}
                   </p>
@@ -101,8 +105,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     <button
                       type="button"
                       onClick={() => onRemoveItem(item.product.id)}
-                      className="p-1 text-[#8C7355] hover:text-[#8B5E34]"
-                      title="Remove item"
+                      className="text-xs text-[#8C7355] hover:text-red-600 flex items-center gap-1"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -113,22 +116,22 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           )}
         </div>
 
-        {/* Footer with Checkout CTA */}
+        {/* Footer with Checkout Actions */}
         {items.length > 0 && (
-          <div className="p-6 bg-[#FAF9F7] border-t border-[#E6D5C3] space-y-4 shrink-0">
-            <div className="space-y-1.5 text-xs">
-              <div className="flex justify-between text-[#8C7355]">
-                <span>Estimated Subtotal</span>
-                <span>₹{subtotal.toLocaleString('en-IN')}</span>
+          <div className="p-6 bg-[#F5F1EE] border-t border-[#E6D5C3] space-y-4 shrink-0">
+            <div className="space-y-1.5 text-xs text-[#6D5843]">
+              <div className="flex justify-between">
+                <span>{t.subtotal}</span>
+                <span className="font-bold text-[#3E2723]">₹{subtotal.toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between text-[#8C7355]">
-                <span>Shipping</span>
-                <span className="text-[#8B5E34] font-semibold">{subtotal > 1999 ? 'FREE' : '₹99'}</span>
+              <div className="flex justify-between">
+                <span>{t.shippingCharge}</span>
+                <span className="text-green-700 font-bold">{t.freeShipping}</span>
               </div>
               <div className="flex justify-between text-sm font-bold text-[#3E2723] pt-2 border-t border-[#E6D5C3]">
-                <span>Total</span>
-                <span className="text-[#8B5E34] font-serif text-base">
-                  ₹{(subtotal + (subtotal > 1999 ? 0 : 99)).toLocaleString('en-IN')}
+                <span>{t.totalPayable}</span>
+                <span className="text-[#8B5E34] font-serif">
+                  ₹{subtotal.toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
@@ -139,9 +142,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 onClose();
                 onProceedToCheckout();
               }}
-              className="w-full py-3.5 px-4 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-transform active:scale-98"
+              className="w-full py-3.5 bg-[#8B5E34] hover:bg-[#734B26] text-white rounded-2xl text-xs font-bold shadow-md transition-transform active:scale-98 flex items-center justify-center gap-2"
             >
-              Proceed to Shipping & UPI Payment <ArrowRight className="w-4 h-4" />
+              {t.proceedToCheckout} <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         )}

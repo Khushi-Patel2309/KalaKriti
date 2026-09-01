@@ -1,6 +1,7 @@
 import React from 'react';
 import { Product } from '../types';
-import { ShoppingBag, Sparkles, MapPin, Tag } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import { ShoppingBag } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -17,6 +18,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   showArtisan = true,
   showStatus = false,
 }) => {
+  const { language, t } = useLanguage();
+
   return (
     <div
       onClick={onClick}
@@ -39,7 +42,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Discount Tag */}
         {product.oldPrice && (
           <span className="absolute top-3 left-3 text-[10px] font-bold bg-[#8B5E34] text-white px-2.5 py-0.5 rounded-full shadow-2xs">
-            SAVE {Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}%
+            {language === 'hi' ? 'बचत' : 'SAVE'}{' '}
+            {Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}%
           </span>
         )}
 
@@ -61,7 +65,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="flex flex-col flex-1 p-4 space-y-2">
         <div className="flex items-center justify-between gap-1 text-[11px] text-[#8B5E34] font-bold uppercase tracking-wider">
           <span>{product.category}</span>
-          <span className="text-[10px] font-normal text-[#8C7355]">Handmade</span>
+          <span className="text-[10px] font-normal text-[#8C7355]">
+            {language === 'hi' ? 'हस्तनिर्मित' : 'Handmade'}
+          </span>
         </div>
 
         <h3 className="text-sm font-bold text-[#3E2723] leading-snug line-clamp-2 group-hover:text-[#8B5E34] transition-colors">
@@ -70,7 +76,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {showArtisan && (
           <p className="text-[11px] text-[#8C7355] flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8B5E34]" /> {product.artisanName} · {product.artisanLocation.split(',')[0]}
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8B5E34]" /> {product.artisanName} ·{' '}
+            {product.artisanLocation.split(',')[0]}
           </p>
         )}
 
@@ -94,7 +101,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 onAddToCart(e, product);
               }}
               className="p-2 text-[#3E2723] hover:text-white bg-[#F5F1EE] hover:bg-[#8B5E34] border border-[#E6D5C3] rounded-xl shadow-2xs transition-all"
-              title="Add to cart"
+              title={t.addToCart}
             >
               <ShoppingBag className="w-4 h-4" />
             </button>

@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import { Product, ArtisanProfile } from '../types';
-import { X, ShoppingBag, Truck, ShieldCheck, Heart, Share2, Sparkles, Check, AlertCircle, Edit, MapPin, Tag } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import {
+  ShoppingBag,
+  Share2,
+  Check,
+  AlertCircle,
+  Edit,
+  MapPin,
+  Tag,
+  Sparkles,
+  Volume2,
+} from 'lucide-react';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -23,21 +34,42 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   currentRole,
   onEditProduct,
 }) => {
+  const { language, t } = useLanguage();
   const [selectedQty, setSelectedQty] = useState(1);
-  const [activeTab, setActiveTab] = useState<'details' | 'craft' | 'care'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'craft' | 'audio'>('details');
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   if (!isOpen || !product) return null;
 
   // Check if this product belongs to the viewing artisan
   const isOwnProduct =
-    (currentRole === 'artisan' && (product.artisanId === currentArtisanProfile?.id || product.artisanName === currentArtisanProfile?.name)) ||
+    (currentRole === 'artisan' &&
+      (product.artisanId === currentArtisanProfile?.id ||
+        product.artisanName === currentArtisanProfile?.name)) ||
     (currentArtisanProfile && product.artisanId === currentArtisanProfile.id);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handlePlayAudio = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const textToSpeak =
+        language === 'hi' && product.descriptionHindi
+          ? `${product.name}. ${product.descriptionHindi}. कारीगर ${product.artisanName}, ${product.artisanLocation} से।`
+          : `${product.name}. ${product.descriptionEnglish}. Crafted by ${product.artisanName} in ${product.artisanLocation}.`;
+
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      utterance.lang = language === 'hi' ? 'hi-IN' : 'en-IN';
+      utterance.onstart = () => setIsPlayingAudio(true);
+      utterance.onend = () => setIsPlayingAudio(false);
+      utterance.onerror = () => setIsPlayingAudio(false);
+      window.speechSynthesis.speak(utterance);
+    }
   };
 
   return (
@@ -49,7 +81,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             <span className="text-xs uppercase tracking-wider font-bold text-[#8B5E34] bg-white border border-[#E6D5C3] px-2.5 py-0.5 rounded-md">
               {product.category}
             </span>
-            <span className="text-xs text-[#8C7355]">Handmade Artisan Heritage</span>
+            <span className="text-xs text-[#8C7355]">
+              {language === 'hi' ? 'प्रामाणिक हस्तशिल्प विरासत' : 'Handmade Artisan Heritage'}
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -57,9 +91,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               type="button"
               onClick={handleShare}
               className="p-1.5 text-[#8C7355] hover:text-[#8B5E34] hover:bg-black/5 rounded-lg text-xs flex items-center gap-1"
-              title="Share product link"
+              title={language === 'hi' ? 'लिंक कॉपी करें' : 'Share product link'}
             >
-              {copiedLink ? <Check className="w-4 h-4 text-green-600" /> : <Share2 className="w-4 h-4" />}
+              {copiedLink ? (
+                <Check className="w-4 h-4 text-green-600" />
+              ) : (
+                <Share2 className="w-4 h-4" />
+              )}
             </button>
             <button
               type="button"
@@ -89,7 +127,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
                 {product.oldPrice && (
                   <span className="absolute top-4 left-4 text-xs font-bold bg-[#8B5E34] text-white px-2.5 py-1 rounded-full shadow-xs">
-                    SAVE {Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}%
+                    {language === 'hi' ? 'बचत' : 'SAVE'}{' '}
+                    {Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}%
                   </span>
                 )}
               </div>
@@ -108,7 +147,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   </div>
                 </div>
                 <span className="text-[10px] font-bold text-[#8B5E34] bg-white px-2 py-0.5 rounded-full border border-[#E6D5C3]">
-                  ✓ Verified Artisan
+                  ✓ {t.verifiedArtisan}
                 </span>
               </div>
             </div>
@@ -129,7 +168,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     </span>
                   )}
                   <span className="text-xs text-[#8B5E34] font-semibold bg-[#F5F1EE] border border-[#E6D5C3] px-2 py-0.5 rounded-md">
-                    Fair-Trade Guaranteed
+                    {t.zeroCommissionPledge}
                   </span>
                 </div>
               </div>
@@ -139,10 +178,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 <div className="p-4 bg-[#F5F1EE] border-2 border-[#8B5E34] rounded-2xl space-y-2">
                   <div className="flex items-center gap-2 text-xs font-bold text-[#8B5E34]">
                     <AlertCircle className="w-4 h-4 text-[#8B5E34]" />
-                    <span>You are viewing your own product listing</span>
+                    <span>
+                      {language === 'hi'
+                        ? 'आप अपनी खुद की उत्पाद सूची देख रहे हैं'
+                        : 'You are viewing your own product listing'}
+                    </span>
                   </div>
                   <p className="text-xs text-[#6D5843]">
-                    Artisans cannot purchase their own products. You can edit this item, adjust inventory, or view performance in your Artisan Catalog.
+                    {language === 'hi'
+                      ? 'कारीगर स्वयं का उत्पाद नहीं खरीद सकते। आप अपने कारीगर कैटलॉग में इसे संपादित कर सकते हैं।'
+                      : 'Artisans cannot purchase their own products. You can edit this item, adjust inventory, or view performance in your Artisan Catalog.'}
                   </p>
                   {onEditProduct && (
                     <button
@@ -153,7 +198,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       }}
                       className="mt-2 px-4 py-2 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl flex items-center gap-1.5 shadow-xs transition-colors"
                     >
-                      <Edit className="w-3.5 h-3.5" /> Edit Product Listing
+                      <Edit className="w-3.5 h-3.5" />{' '}
+                      {language === 'hi' ? 'उत्पाद विवरण संपादित करें' : 'Edit Product Listing'}
                     </button>
                   )}
                 </div>
@@ -161,7 +207,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 /* Customer Purchase Controls */
                 <div className="p-4 bg-[#FAF9F7] border border-[#E6D5C3] rounded-2xl space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#3E2723]">Select Quantity</span>
+                    <span className="text-xs font-bold text-[#3E2723]">{t.quantity}</span>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
@@ -173,7 +219,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       <span className="text-xs font-bold px-2 text-[#3E2723]">{selectedQty}</span>
                       <button
                         type="button"
-                        onClick={() => setSelectedQty(Math.min(product.quantity || 10, selectedQty + 1))}
+                        onClick={() =>
+                          setSelectedQty(Math.min(product.quantity || 10, selectedQty + 1))
+                        }
                         className="w-7 h-7 bg-white border border-[#E6D5C3] rounded-lg flex items-center justify-center font-bold text-[#3E2723] hover:bg-[#F5F1EE]"
                       >
                         +
@@ -189,66 +237,151 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       }}
                       className="py-3 px-4 text-xs font-bold text-[#3E2723] bg-white border border-[#E6D5C3] hover:bg-[#FAF9F7] rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5"
                     >
-                      <ShoppingBag className="w-4 h-4 text-[#8B5E34]" /> Add to Cart
+                      <ShoppingBag className="w-4 h-4 text-[#8B5E34]" /> {t.addToCart}
                     </button>
                     <button
                       type="button"
                       onClick={() => onBuyNow(product)}
                       className="py-3 px-4 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5"
                     >
-                      Buy Now (UPI / QR)
+                      {language === 'hi' ? 'सीधा खरीदें (UPI / QR)' : 'Buy Now (UPI / QR)'}
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* Tabs for Story, Craft & Specifications */}
+              {/* Tabs for Story, Craft & Audio */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center gap-2 border-b border-[#E6D5C3] pb-2 text-xs font-semibold">
                   <button
                     type="button"
                     onClick={() => setActiveTab('details')}
                     className={`pb-1 border-b-2 transition-all ${
-                      activeTab === 'details' ? 'border-[#8B5E34] text-[#8B5E34] font-bold' : 'border-transparent text-[#8C7355]'
+                      activeTab === 'details'
+                        ? 'border-[#8B5E34] text-[#8B5E34] font-bold'
+                        : 'border-transparent text-[#8C7355]'
                     }`}
                   >
-                    Product Description
+                    {language === 'hi' ? 'उत्पाद विवरण' : 'Product Story'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveTab('craft')}
                     className={`pb-1 border-b-2 transition-all ${
-                      activeTab === 'craft' ? 'border-[#8B5E34] text-[#8B5E34] font-bold' : 'border-transparent text-[#8C7355]'
+                      activeTab === 'craft'
+                        ? 'border-[#8B5E34] text-[#8B5E34] font-bold'
+                        : 'border-transparent text-[#8C7355]'
                     }`}
                   >
-                    Craft & Technique
+                    {t.craftTechnique}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('audio')}
+                    className={`pb-1 border-b-2 transition-all ${
+                      activeTab === 'audio'
+                        ? 'border-[#8B5E34] text-[#8B5E34] font-bold'
+                        : 'border-transparent text-[#8C7355]'
+                    }`}
+                  >
+                    {language === 'hi' ? 'ऑडियो सुनें' : 'Audio Story'}
                   </button>
                 </div>
 
                 {activeTab === 'details' && (
                   <div className="space-y-2 text-xs text-[#6D5843] leading-relaxed">
-                    <p>{product.descriptionEnglish}</p>
-                    {product.descriptionHindi && (
-                      <p className="p-3 bg-[#FAF9F7] rounded-xl border border-[#E6D5C3] italic text-[#8C7355]">
-                        {product.descriptionHindi}
-                      </p>
+                    {/* Primary text based on selected language */}
+                    {language === 'hi' ? (
+                      <div>
+                        <p className="font-serif leading-relaxed text-[#3E2723]">
+                          {product.descriptionHindi || product.descriptionEnglish}
+                        </p>
+                        {product.descriptionEnglish && (
+                          <div className="mt-3 p-2.5 bg-[#FAF9F7] rounded-xl border border-[#E6D5C3] text-[11px] text-[#8C7355]">
+                            <span className="font-bold block text-[#6D5843]">English Summary:</span>
+                            {product.descriptionEnglish}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="leading-relaxed text-[#3E2723]">
+                          {product.descriptionEnglish}
+                        </p>
+                        {product.descriptionHindi && (
+                          <div className="mt-3 p-2.5 bg-[#FAF9F7] rounded-xl border border-[#E6D5C3] text-[11px] text-[#8C7355] font-serif">
+                            <span className="font-bold block text-[#6D5843]">हिंदी विवरण:</span>
+                            {product.descriptionHindi}
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
 
                 {activeTab === 'craft' && (
                   <div className="space-y-2 text-xs text-[#6D5843]">
-                    <p><strong className="text-[#3E2723]">Craft Technique:</strong> {product.craftTechnique || 'Traditional Indian Handcraft'}</p>
-                    <p><strong className="text-[#3E2723]">Materials Used:</strong> {product.materials || 'Sustainably sourced natural materials'}</p>
-                    <p><strong className="text-[#3E2723]">Dominant Shades:</strong> {product.color || 'Natural mineral dyes'}</p>
+                    <p>
+                      <strong className="text-[#3E2723]">{t.craftTechnique}:</strong>{' '}
+                      {product.craftTechnique ||
+                        (language === 'hi'
+                          ? 'पारंपरिक भारतीय हस्तशिल्प'
+                          : 'Traditional Indian Handcraft')}
+                    </p>
+                    <p>
+                      <strong className="text-[#3E2723]">{t.materialsUsed}:</strong>{' '}
+                      {product.materials ||
+                        (language === 'hi'
+                          ? 'प्राकृतिक एवं शुद्ध सामग्री'
+                          : 'Sustainably sourced natural materials')}
+                    </p>
+                    <p>
+                      <strong className="text-[#3E2723]">{t.clusterOrigin}:</strong>{' '}
+                      {product.artisanLocation}
+                    </p>
+                  </div>
+                )}
+
+                {activeTab === 'audio' && (
+                  <div className="p-4 bg-[#FAF9F7] border border-[#E6D5C3] rounded-2xl space-y-3">
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handlePlayAudio}
+                        className={`p-3 rounded-full text-white shadow-xs transition-transform active:scale-95 ${
+                          isPlayingAudio ? 'bg-[#3E2723] animate-pulse' : 'bg-[#8B5E34] hover:bg-[#734B26]'
+                        }`}
+                      >
+                        <Volume2 className="w-5 h-5" />
+                      </button>
+                      <div>
+                        <h4 className="text-xs font-bold text-[#3E2723]">
+                          {isPlayingAudio
+                            ? language === 'hi'
+                              ? 'ऑडियो चल रहा है...'
+                              : 'Playing Story...'
+                            : language === 'hi'
+                            ? 'कारीगर की आवाज में शिल्प की कहानी सुनें'
+                            : 'Listen to the Artisan Voice Narrative'}
+                        </h4>
+                        <p className="text-[11px] text-[#8C7355]">
+                          {language === 'hi'
+                            ? 'प्रामाणिक शिल्प परंपरा और तकनीक की मौखिक व्याख्या'
+                            : 'Spoken craft lore and technique history in selected language'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1.5 pt-2">
-                  {product.tags.map((t, idx) => (
-                    <span key={idx} className="text-[10px] font-medium bg-[#F5F1EE] text-[#6D5843] px-2 py-0.5 rounded-md border border-[#E6D5C3] flex items-center gap-1">
-                      <Tag className="w-2.5 h-2.5 text-[#8B5E34]" /> {t}
+                  {product.tags.map((tg, idx) => (
+                    <span
+                      key={idx}
+                      className="text-[10px] font-medium bg-[#F5F1EE] text-[#6D5843] px-2 py-0.5 rounded-md border border-[#E6D5C3] flex items-center gap-1"
+                    >
+                      <Tag className="w-2.5 h-2.5 text-[#8B5E34]" /> {tg}
                     </span>
                   ))}
                 </div>

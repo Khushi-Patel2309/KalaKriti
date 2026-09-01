@@ -1,0 +1,522 @@
+export type Language = 'en' | 'hi';
+
+export interface Translations {
+  // Brand & Slogans
+  brandName: string;
+  brandSubtitle: string;
+  brandTagline: string;
+
+  // Nav & Header
+  navCustomerShop: string;
+  navArtisanPortal: string;
+  navB2BBulk: string;
+  navCatalog: string;
+  navTracking: string;
+  navCart: string;
+  navNotifications: string;
+  searchPlaceholder: string;
+  langSwitchEn: string;
+  langSwitchHi: string;
+  askAiButton: string;
+
+  // Hero & Banners
+  heroBadge: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  heroArtisanCount: string;
+  heroCommissionFree: string;
+  heroGIAssured: string;
+
+  // Category Filters
+  allCategories: string;
+  catTextiles: string;
+  catPottery: string;
+  catJewelry: string;
+  catWoodwork: string;
+  catMetalwork: string;
+  catHomeDecor: string;
+  catPaintings: string;
+
+  // Sorting & Search
+  sortBy: string;
+  sortFeatured: string;
+  sortPriceLow: string;
+  sortPriceHigh: string;
+  sortPopular: string;
+  noProductsFound: string;
+  clearFilters: string;
+
+  // Product Card & Details
+  price: string;
+  addToCart: string;
+  addedToCart: string;
+  inStock: string;
+  unitsLeft: string;
+  outOfStock: string;
+  viewDetails: string;
+  craftTechnique: string;
+  materialsUsed: string;
+  artisanStory: string;
+  verifiedArtisan: string;
+  directUpiTransfer: string;
+  zeroCommissionPledge: string;
+  clusterOrigin: string;
+  listenCraftAudio: string;
+  experienceYearsLabel: string;
+  close: string;
+
+  // Cart & Checkout
+  yourBag: string;
+  bagEmpty: string;
+  bagEmptySub: string;
+  subtotal: string;
+  freeShipping: string;
+  shippingCharge: string;
+  totalPayable: string;
+  proceedToCheckout: string;
+  continueShopping: string;
+  quantity: string;
+  remove: string;
+
+  // Checkout Form
+  checkoutTitle: string;
+  deliveryAddress: string;
+  fullName: string;
+  phoneNumber: string;
+  emailAddress: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  pincode: string;
+  landmark: string;
+  deliveryNotes: string;
+  paymentMethod: string;
+  payViaUpi: string;
+  payViaCod: string;
+  scanUpiQrDesc: string;
+  upiVerifyDesc: string;
+  confirmAndPlaceOrder: string;
+  orderSuccessTitle: string;
+  orderSuccessDesc: string;
+  trackOrderBtn: string;
+
+  // Orders & Tracking
+  myOrdersTitle: string;
+  myOrdersSubtitle: string;
+  noOrdersYet: string;
+  orderId: string;
+  trackingNumber: string;
+  courierPartner: string;
+  estimatedArrival: string;
+  statusOrderPlaced: string;
+  statusAccepted: string;
+  statusDispatched: string;
+  statusInTransit: string;
+  statusOutForDelivery: string;
+  statusDelivered: string;
+  liveMapTracking: string;
+  needHelp: string;
+
+  // Artisan Portal
+  artisanDashboardTitle: string;
+  artisanDashboardSub: string;
+  voiceStudioTab: string;
+  photoStudioTab: string;
+  myListingsTab: string;
+  ordersReceivedTab: string;
+  artisanProfileTab: string;
+  totalEarnings: string;
+  activeOrdersCount: string;
+  publishedProductsCount: string;
+  clusterReputation: string;
+  addNewProductBtn: string;
+  recordVoiceListingBtn: string;
+  enhancePhotoBtn: string;
+  markAsDispatched: string;
+  dispatchSuccess: string;
+
+  // Voice Studio
+  voiceStudioTitle: string;
+  voiceStudioDesc: string;
+  voiceRecording: string;
+  voiceStartRecord: string;
+  voiceStopRecord: string;
+  voiceProcessing: string;
+  voiceAutoFillSuccess: string;
+  voiceLanguageNote: string;
+
+  // Photo Enhancer Studio
+  photoStudioTitle: string;
+  photoStudioDesc: string;
+  photoUploadPrompt: string;
+  photoOriginal: string;
+  photoEnhanced: string;
+  photoApplyingStudio: string;
+  photoSaveEnhanced: string;
+  photoReset: string;
+
+  // B2B & Wholesale
+  b2bTitle: string;
+  b2bSubtitle: string;
+  b2bTagline: string;
+  b2bBuyerName: string;
+  b2bCompanyName: string;
+  b2bQuantityReq: string;
+  b2bSubmitRfq: string;
+  b2bSuccessMsg: string;
+
+  // Lookbook / Web Catalog
+  lookbookTitle: string;
+  lookbookSubtitle: string;
+  shareCatalog: string;
+  printCatalog: string;
+
+  // Ask KalaKriti AI
+  aiAssistantTitle: string;
+  aiAssistantSubtitle: string;
+  aiInputPlaceholder: string;
+  aiThinking: string;
+  aiQuickPrompts: string[];
+}
+
+export const TRANSLATIONS: Record<Language, Translations> = {
+  en: {
+    brandName: 'KALAKRITI',
+    brandSubtitle: 'Empowering Artisans. Enriching Lives.',
+    brandTagline: '— From Handmade Craft to Digital Market. —',
+
+    navCustomerShop: 'Customer Shop',
+    navArtisanPortal: 'Artisan Portal',
+    navB2BBulk: 'B2B Wholesale',
+    navCatalog: 'Master Catalog',
+    navTracking: 'Track Order',
+    navCart: 'Bag',
+    navNotifications: 'Alerts',
+    searchPlaceholder: 'Search handwoven dupattas, terracotta pots, silver jhumkas...',
+    langSwitchEn: 'English',
+    langSwitchHi: 'हिंदी',
+    askAiButton: 'Ask KalaKriti AI',
+
+    heroBadge: '✨ 100% Direct Fair Trade Craft Ecosystem',
+    heroTitle: 'Authentic Indian Crafts, Direct From Master Looms & Wheels',
+    heroSubtitle: 'Every handcrafted artifact is directly crafted by rural master artisans. 0% intermediary fee, direct UPI settlements, GI-tagged authenticity, and door-to-door courier tracking.',
+    heroArtisanCount: '500+ Certified Artisans',
+    heroCommissionFree: '100% Direct Payment to Artisans',
+    heroGIAssured: 'GI-Certified Authentic Crafts',
+
+    allCategories: 'All Crafts',
+    catTextiles: 'Textiles & Weaving',
+    catPottery: 'Pottery & Ceramics',
+    catJewelry: 'Jewelry & Silver',
+    catWoodwork: 'Woodcraft & Carving',
+    catMetalwork: 'Metal & Brassware',
+    catHomeDecor: 'Home & Living',
+    catPaintings: 'Folk Paintings & Art',
+
+    sortBy: 'Sort by',
+    sortFeatured: 'Featured & Authentic',
+    sortPriceLow: 'Price: Low to High',
+    sortPriceHigh: 'Price: High to Low',
+    sortPopular: 'Most Popular',
+    noProductsFound: 'No handcrafted products found matching your search.',
+    clearFilters: 'Clear Filters',
+
+    price: 'Price',
+    addToCart: 'Add to Bag',
+    addedToCart: 'Added to Bag',
+    inStock: 'In Stock',
+    unitsLeft: 'units left in cluster',
+    outOfStock: 'Sold Out',
+    viewDetails: 'View Craft Details',
+    craftTechnique: 'Craft Technique',
+    materialsUsed: 'Authentic Materials',
+    artisanStory: 'The Artisan’s Legacy & Story',
+    verifiedArtisan: 'Verified Master Artisan',
+    directUpiTransfer: 'Direct UPI Instant Settlement',
+    zeroCommissionPledge: 'Zero Middleman Commission (100% to Maker)',
+    clusterOrigin: 'Craft Origin',
+    listenCraftAudio: 'Listen to Artisan Audio Story',
+    experienceYearsLabel: 'Years of Master Crafting',
+    close: 'Close',
+
+    yourBag: 'Your Craft Bag',
+    bagEmpty: 'Your bag is empty',
+    bagEmptySub: 'Support rural Indian weavers and potters by exploring their authentic handcrafted creations.',
+    subtotal: 'Subtotal',
+    freeShipping: 'FREE',
+    shippingCharge: 'Delivery & Packaging',
+    totalPayable: 'Total Payable',
+    proceedToCheckout: 'Proceed to Checkout',
+    continueShopping: 'Continue Exploring Crafts',
+    quantity: 'Quantity',
+    remove: 'Remove',
+
+    checkoutTitle: 'Secure Artisan Checkout',
+    deliveryAddress: 'Shipping & Delivery Address',
+    fullName: 'Full Name',
+    phoneNumber: 'Mobile Phone Number',
+    emailAddress: 'Email Address',
+    addressLine1: 'Street Address / House No.',
+    addressLine2: 'Apartment / Area / Landmark',
+    city: 'City / Town',
+    state: 'State',
+    pincode: 'PIN Code',
+    landmark: 'Nearest Landmark',
+    deliveryNotes: 'Delivery Instructions for Courier',
+    paymentMethod: 'Choose Payment Option',
+    payViaUpi: 'Direct Artisan UPI QR Code (Instant 0% Fee)',
+    payViaCod: 'Cash on Delivery (Pay at Doorstep)',
+    scanUpiQrDesc: 'Scan with any UPI app (GPay, PhonePe, Paytm, BHIM). Money transfers directly into the artisan’s verified bank account.',
+    upiVerifyDesc: 'Once paid, confirm your transaction reference or proceed to generate order tracking.',
+    confirmAndPlaceOrder: 'Confirm & Place Order',
+    orderSuccessTitle: 'Order Successfully Placed with Artisan!',
+    orderSuccessDesc: 'Thank you for directly empowering our master artisans. Your order notification and courier dispatch slip have been generated.',
+    trackOrderBtn: 'Track Live Delivery',
+
+    myOrdersTitle: 'My Handcrafted Orders & Live Tracking',
+    myOrdersSubtitle: 'Real-time status updates, live courier milestones, and direct artisan fulfillment tracking.',
+    noOrdersYet: 'You have not placed any orders yet.',
+    orderId: 'Order ID',
+    trackingNumber: 'Waybill Tracking',
+    courierPartner: 'Courier Partner',
+    estimatedArrival: 'Estimated Delivery',
+    statusOrderPlaced: 'Order Placed',
+    statusAccepted: 'Accepted by Artisan',
+    statusDispatched: 'Packed & Dispatched',
+    statusInTransit: 'In Transit',
+    statusOutForDelivery: 'Out for Delivery',
+    statusDelivered: 'Delivered to Doorstep',
+    liveMapTracking: 'Courier Routing Status',
+    needHelp: 'Need Artisan Help?',
+
+    artisanDashboardTitle: 'Artisan Workshop & Commerce Portal',
+    artisanDashboardSub: 'Manage your handcrafted inventory, record new listings via voice in Hindi or English, enhance photos, and track direct UPI payments.',
+    voiceStudioTab: '🎙️ Voice Listing Studio',
+    photoStudioTab: '📸 Photo Studio Enhancer',
+    myListingsTab: '📦 Craft Catalog',
+    ordersReceivedTab: '🚚 Order Fulfillment',
+    artisanProfileTab: '👤 Master Artisan Profile',
+    totalEarnings: 'Total Direct UPI Earnings',
+    activeOrdersCount: 'Active Orders to Dispatch',
+    publishedProductsCount: 'Live Listed Crafts',
+    clusterReputation: 'Cluster Rating',
+    addNewProductBtn: '+ Add New Handcrafted Item',
+    recordVoiceListingBtn: '🎙️ Record Voice Description',
+    enhancePhotoBtn: '📸 Enhance Photo Studio',
+    markAsDispatched: 'Mark Dispatched & Print Courier Label',
+    dispatchSuccess: 'Order dispatched and buyer notified via SMS/Push!',
+
+    voiceStudioTitle: 'AI Multilingual Voice-to-Listing Studio',
+    voiceStudioDesc: 'Simply speak in your regional language or Hindi. Our AI automatically extracts product title, technique, materials, price, and descriptions in both Hindi & English.',
+    voiceRecording: 'Listening... Speak about your craft piece (name, materials, price, size)',
+    voiceStartRecord: 'Start Voice Recording',
+    voiceStopRecord: 'Stop & Generate Listing',
+    voiceProcessing: 'Transcribing & structuring craft listing...',
+    voiceAutoFillSuccess: 'Listing details filled automatically from your voice note!',
+    voiceLanguageNote: 'Supports Hindi, Gujarati, Rajasthani, Marathi, and English voice input.',
+
+    photoStudioTitle: 'Authentic Photo Studio Enhancer',
+    photoStudioDesc: 'Enhance your craft photos with studio lighting, authentic color balance, and crisp detail while preserving the true handmade texture.',
+    photoUploadPrompt: 'Upload or snap craft photo to enhance',
+    photoOriginal: 'Raw Craft Photo',
+    photoEnhanced: 'Studio Enhanced Finish',
+    photoApplyingStudio: 'Applying studio enhancement and color correction...',
+    photoSaveEnhanced: 'Use Studio Enhanced Photo',
+    photoReset: 'Reset Original',
+
+    b2bTitle: 'KalaKriti Corporate & Export Wholesale',
+    b2bSubtitle: 'Direct Artisan Sourcing for Luxury Retailers, Hotels & Corporate Gifting',
+    b2bTagline: 'Zero intermediaries, fair trade wages, customized bulk packaging, and export compliance.',
+    b2bBuyerName: 'Buyer / Sourcing Contact',
+    b2bCompanyName: 'Company / Brand / Hotel',
+    b2bQuantityReq: 'Estimated Quantity (Units)',
+    b2bSubmitRfq: 'Submit Bulk Sourcing RFQ',
+    b2bSuccessMsg: 'Wholesale inquiry submitted! Our cluster coordinator will reach out within 24 hours.',
+
+    lookbookTitle: 'KalaKriti Master Artisan Catalog',
+    lookbookSubtitle: 'A curated public digital craft lookbook for interior designers, curators, and cultural collectors.',
+    shareCatalog: 'Share Catalog Link',
+    printCatalog: 'Print / Export PDF',
+
+    aiAssistantTitle: 'Ask KalaKriti AI Assistant',
+    aiAssistantSubtitle: 'Ask anything about Indian crafts, GI history, artisan clusters, material care, and styling advice.',
+    aiInputPlaceholder: 'e.g. How to care for organic Kala cotton? or What makes Kutch weaving unique?',
+    aiThinking: 'Consulting master craft knowledge base...',
+    aiQuickPrompts: [
+      'What is Kala Cotton and why is it eco-friendly?',
+      'How do I care for hand-painted Madhubani art?',
+      'Tell me the history of Dhokra brass casting',
+      'How does KalaKriti ensure 100% goes to artisans?',
+    ],
+  },
+  hi: {
+    brandName: 'कलाकृति',
+    brandSubtitle: 'कारीगरों का सशक्तिकरण, जीवन का संवर्धन।',
+    brandTagline: '— हस्तशिल्प से डिजिटल बाज़ार तक —',
+
+    navCustomerShop: 'ग्राहक बाज़ार',
+    navArtisanPortal: 'कारीगर पोर्टल',
+    navB2BBulk: 'थोक व्यापार (B2B)',
+    navCatalog: 'मास्टर कैटलॉग',
+    navTracking: 'ऑर्डर ट्रैकिंग',
+    navCart: 'झोला',
+    navNotifications: 'सूचनाएं',
+    searchPlaceholder: 'हथकरघा दुपट्टा, मिट्टी के बर्तन, चांदी के झुमके खोजें...',
+    langSwitchEn: 'English',
+    langSwitchHi: 'हिंदी',
+    askAiButton: 'कलाकृति AI से पूछें',
+
+    heroBadge: '✨ 100% प्रत्यक्ष निष्पक्ष व्यापार शिल्प मंच',
+    heroTitle: 'प्रामाणिक भारतीय हस्तशिल्प, सीधे कारीगरों के करघों और चाक से',
+    heroSubtitle: 'हर हस्तनिर्मित कलाकृति सीधे ग्रामीण मास्टर कारीगरों द्वारा बनाई गई है। 0% बिचौलिया शुल्क, सीधा UPI भुगतान, जीआई (GI) टैग प्रामाणिकता, और घर तक कूरियर ट्रैकिंग।',
+    heroArtisanCount: '500+ प्रमाणित कारीगर',
+    heroCommissionFree: '100% भुगतान सीधे कारीगरों को',
+    heroGIAssured: 'जीआई-प्रमाणित शुद्ध हस्तशिल्प',
+
+    allCategories: 'सभी शिल्प',
+    catTextiles: 'वस्त्र और बुनाई',
+    catPottery: 'मिट्टी के बर्तन और सिरेमिक',
+    catJewelry: 'पारंपरिक आभूषण व चांदी',
+    catWoodwork: 'काष्ठ कला व नक्काशी',
+    catMetalwork: 'धातु व पीतल शिल्प',
+    catHomeDecor: 'गृह सज्जा व लिविंग',
+    catPaintings: 'लोक चित्रकला व कला',
+
+    sortBy: 'क्रमबद्ध करें',
+    sortFeatured: 'विशेष व प्रामाणिक',
+    sortPriceLow: 'कीमत: कम से अधिक',
+    sortPriceHigh: 'कीमत: अधिक से कम',
+    sortPopular: 'सर्वाधिक लोकप्रिय',
+    noProductsFound: 'आपकी खोज के अनुसार कोई हस्तशिल्प उत्पाद नहीं मिला।',
+    clearFilters: 'फ़िल्टर हटाएं',
+
+    price: 'कीमत',
+    addToCart: 'बैग में जोड़ें',
+    addedToCart: 'बैग में जोड़ा गया',
+    inStock: 'उपलब्ध',
+    unitsLeft: 'इकाइयाँ शेष',
+    outOfStock: 'स्टॉक समाप्त',
+    viewDetails: 'शिल्प का विवरण देखें',
+    craftTechnique: 'पारंपरिक शिल्प तकनीक',
+    materialsUsed: 'प्राकृतिक सामग्री',
+    artisanStory: 'कारीगर की विरासत और कहानी',
+    verifiedArtisan: 'सत्यापित मास्टर कारीगर',
+    directUpiTransfer: 'सीधा UPI त्वरित भुगतान',
+    zeroCommissionPledge: 'शून्य बिचौलिया कमीशन (100% कारीगर को)',
+    clusterOrigin: 'शिल्प का मूल स्थान',
+    listenCraftAudio: 'कारीगर की ऑडियो कहानी सुनें',
+    experienceYearsLabel: 'वर्षों का शिल्पकला अनुभव',
+    close: 'बंद करें',
+
+    yourBag: 'आपका शिल्प झोला (Shopping Bag)',
+    bagEmpty: 'आपका झोला खाली है',
+    bagEmptySub: 'ग्रामीण भारतीय बुनकरों और कुम्हारों के प्रामाणिक हस्तशिल्प को देखकर उनका सहयोग करें।',
+    subtotal: 'उप-योग (Subtotal)',
+    freeShipping: 'मुफ्त (FREE)',
+    shippingCharge: 'डिलीवरी और सुरक्षित पैकेजिंग',
+    totalPayable: 'कुल देय राशि',
+    proceedToCheckout: 'चेकआउट के लिए आगे बढ़ें',
+    continueShopping: 'शिल्प देखना जारी रखें',
+    quantity: 'मात्रा',
+    remove: 'हटाएं',
+
+    checkoutTitle: 'सुरक्षित कारीगर चेकआउट',
+    deliveryAddress: 'डिलीवरी का पता (Shipping Address)',
+    fullName: 'पूरा नाम',
+    phoneNumber: 'मोबाइल नंबर',
+    emailAddress: 'ईमेल पता',
+    addressLine1: 'मकान / फ्लैट नं. और गली',
+    addressLine2: 'इलाका / कॉलोनी / क्षेत्र',
+    city: 'शहर / कस्बा',
+    state: 'राज्य',
+    pincode: 'पिन कोड (PIN Code)',
+    landmark: 'नजदीकी प्रसिद्ध स्थान (Landmark)',
+    deliveryNotes: 'कूरियर वाले के लिए निर्देश',
+    paymentMethod: 'भुगतान का तरीका चुनें',
+    payViaUpi: 'कारीगर का सीधा UPI QR कोड (तत्काल 0% शुल्क)',
+    payViaCod: 'कैश ऑन डिलीवरी (दरवाजे पर नकद भुगतान)',
+    scanUpiQrDesc: 'किसी भी UPI ऐप (GPay, PhonePe, Paytm, BHIM) से स्कैन करें। पैसा सीधे कारीगर के सत्यापित खाते में जमा होगा।',
+    upiVerifyDesc: 'भुगतान के बाद, अपना संदर्भ सत्यापित करें या ट्रैकिंग आईडी प्राप्त करें।',
+    confirmAndPlaceOrder: 'ऑर्डर की पुष्टि करें और भेजें',
+    orderSuccessTitle: 'कारीगर के साथ ऑर्डर सफलतापूर्वक दर्ज हुआ!',
+    orderSuccessDesc: 'मास्टर कारीगरों को सीधे सशक्त बनाने के लिए धन्यवाद। आपका ऑर्डर अलर्ट और कूरियर प्रेषण पर्ची तैयार हो गई है।',
+    trackOrderBtn: 'लाइव डिलीवरी ट्रैक करें',
+
+    myOrdersTitle: 'मेरे हस्तशिल्प ऑर्डर और लाइव ट्रैकिंग',
+    myOrdersSubtitle: 'वास्तविक समय की स्थिति अपडेट, लाइव कूरियर मील के पत्थर, और सीधा कारीगर ट्रैकिंग।',
+    noOrdersYet: 'आपने अभी तक कोई ऑर्डर नहीं दिया है।',
+    orderId: 'ऑर्डर आईडी',
+    trackingNumber: 'वेबिल / ट्रैकिंग संख्या',
+    courierPartner: 'कूरियर पार्टनर',
+    estimatedArrival: 'अनुमानित डिलीवरी समय',
+    statusOrderPlaced: 'ऑर्डर दर्ज हुआ',
+    statusAccepted: 'कारीगर द्वारा स्वीकृत',
+    statusDispatched: 'पैक और रवाना हुआ',
+    statusInTransit: 'रास्ते में है',
+    statusOutForDelivery: 'डिलीवरी के लिए निकला',
+    statusDelivered: 'घर पर सफलतापूर्वक डिलीवर',
+    liveMapTracking: 'कूरियर रूट की स्थिति',
+    needHelp: 'कारीगर से सहायता चाहिए?',
+
+    artisanDashboardTitle: 'कारीगर कार्यशाला और बाज़ार पोर्टल',
+    artisanDashboardSub: 'अपनी हस्तशिल्प सूची प्रबंधित करें, हिंदी या अंग्रेजी में आवाज़ द्वारा नए उत्पाद जोड़ें, फ़ोटो सुधारें और सीधे UPI भुगतान देखें।',
+    voiceStudioTab: '🎙️ आवाज़ से उत्पाद जोड़ें',
+    photoStudioTab: '📸 फ़ोटो स्टूडियो संवर्द्धन',
+    myListingsTab: '📦 मेरी शिल्प सूची',
+    ordersReceivedTab: '🚚 प्राप्त ऑर्डर और प्रेषण',
+    artisanProfileTab: '👤 मास्टर कारीगर प्रोफ़ाइल',
+    totalEarnings: 'कुल प्रत्यक्ष UPI आय',
+    activeOrdersCount: 'सक्रिय ऑर्डर प्रेषण हेतु',
+    publishedProductsCount: 'लाइव सूचीबद्ध हस्तशिल्प',
+    clusterReputation: 'क्लस्टर प्रतिष्ठा रेटिंग',
+    addNewProductBtn: '+ नया हस्तशिल्प उत्पाद जोड़ें',
+    recordVoiceListingBtn: '🎙️ आवाज़ में विवरण रिकॉर्ड करें',
+    enhancePhotoBtn: '📸 फ़ोटो स्टूडियो में सुधारें',
+    markAsDispatched: 'रवाना करें और कूरियर लेबल निकालें',
+    dispatchSuccess: 'ऑर्डर रवाना हुआ और ग्राहक को संदेश भेजा गया!',
+
+    voiceStudioTitle: 'AI बहुभाषी वॉयस-टू-लिस्टिंग स्टूडियो',
+    voiceStudioDesc: 'बस अपनी क्षेत्रीय भाषा या हिंदी में बोलें। हमारा AI स्वचालित रूप से उत्पाद का नाम, तकनीक, सामग्री, कीमत और विवरण निकाल लेता है।',
+    voiceRecording: 'सुन रहे हैं... अपने शिल्प के बारे में बोलें (नाम, सामग्री, कीमत, आकार)',
+    voiceStartRecord: 'आवाज़ रिकॉर्ड करना शुरू करें',
+    voiceStopRecord: 'रोकें और लिस्टिंग तैयार करें',
+    voiceProcessing: 'आवाज़ को समझकर विवरण तैयार किया जा रहा है...',
+    voiceAutoFillSuccess: 'आपकी आवाज़ से सभी विवरण स्वचालित रूप से भर दिए गए!',
+    voiceLanguageNote: 'हिंदी, गुजराती, राजस्थानी, मराठी और अंग्रेजी वॉयस इनपुट का समर्थन करता है।',
+
+    photoStudioTitle: 'प्रामाणिक फ़ोटो स्टूडियो संवर्द्धक',
+    photoStudioDesc: 'शिल्प की असली बनावट को बनाए रखते हुए स्टूडियो लाइटिंग और स्पष्ट रंगों के साथ अपनी फ़ोटो को निखारें।',
+    photoUploadPrompt: 'सुधारने के लिए शिल्प की फ़ोटो अपलोड करें या खींचें',
+    photoOriginal: 'मूल शिल्प फ़ोटो',
+    photoEnhanced: 'स्टूडियो संवर्धित फ़ोटो',
+    photoApplyingStudio: 'स्टूडियो लाइटिंग और रंग सुधार लागू किए जा रहे हैं...',
+    photoSaveEnhanced: 'इस संवर्धित फ़ोटो का उपयोग करें',
+    photoReset: 'मूल फ़ोटो पर रीसेट करें',
+
+    b2bTitle: 'कलाकृति कॉर्पोरेट और निर्यात थोक व्यापार',
+    b2bSubtitle: 'लक्जरी रिटेलर्स, होटलों और उपहारों के लिए सीधा कारीगर स्रोत',
+    b2bTagline: 'शून्य बिचौलिए, उचित मजदूरी, अनुकूलित थोक पैकेजिंग, और निर्यात अनुपालन।',
+    b2bBuyerName: 'खरीदार / संपर्क व्यक्ति',
+    b2bCompanyName: 'कंपनी / ब्रांड / होटल',
+    b2bQuantityReq: 'अनुमानित मात्रा (इकाइयाँ)',
+    b2bSubmitRfq: 'थोक मूल्य प्रस्ताव (RFQ) भेजें',
+    b2bSuccessMsg: 'थोक पूछताछ दर्ज हो गई है! हमारे क्लस्टर समन्वयक 24 घंटे के भीतर संपर्क करेंगे।',
+
+    lookbookTitle: 'कलाकृति मास्टर कारीगर कैटलॉग',
+    lookbookSubtitle: 'इंटीरियर डिजाइनरों, क्यूरेटरों और सांस्कृतिक संग्राहकों के लिए सार्वजनिक डिजिटल लुकबुक।',
+    shareCatalog: 'कैटलॉग लिंक साझा करें',
+    printCatalog: 'प्रिंट / PDF निर्यात',
+
+    aiAssistantTitle: 'कलाकृति AI सहायक से पूछें',
+    aiAssistantSubtitle: 'भारतीय शिल्प, जीआई इतिहास, कारीगर क्लस्टर, सामग्री देखभाल और सजावट सलाह के बारे में कुछ भी पूछें।',
+    aiInputPlaceholder: 'उदा. काला कॉटन की देखभाल कैसे करें? या कच्छी बुनाई क्यों खास है?',
+    aiThinking: 'शिल्प ज्ञानकोश से जानकारी ली जा रही है...',
+    aiQuickPrompts: [
+      'काला कॉटन (Kala Cotton) क्या है और यह पर्यावरण के अनुकूल क्यों है?',
+      'हाथ से बनी मधुबनी पेंटिंग की देखभाल कैसे करें?',
+      'ढोकरा पीतल शिल्प का प्राचीन इतिहास क्या है?',
+      'कलाकृति यह कैसे सुनिश्चित करती है कि 100% पैसा कारीगर को मिले?',
+    ],
+  },
+};
