@@ -1,0 +1,7 @@
+{
+  "name": "KalaKriti",
+  "description": "KalaKriti — From Handmade Craft to Digital Market. AI-powered marketplace empowering Indian artisans with voice-to-text listing, photo studio enhancement, UPI QR payments, dual buyer-seller notifications, live delivery tracking, and Ask KalaKriti AI.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
