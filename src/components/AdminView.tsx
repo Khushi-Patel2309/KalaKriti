@@ -1,6 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Product, Order, ArtisanProfile } from '../types';
-import { ShieldCheck, Users, Package, Truck, IndianRupee, CheckCircle2, QrCode } from 'lucide-react';
+import {
+  ShieldCheck,
+  Users,
+  Package,
+  Truck,
+  IndianRupee,
+  CheckCircle2,
+  QrCode,
+  Award,
+  Filter,
+  MapPin,
+  Clock,
+  Phone,
+  FileCheck,
+} from 'lucide-react';
 
 interface AdminViewProps {
   products: Product[];
@@ -9,7 +23,14 @@ interface AdminViewProps {
 }
 
 export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanProfile }) => {
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
   const totalVolume = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const deliveredOrders = orders.filter((o) => o.status === 'Delivered').length;
+  const filteredOrders =
+    statusFilter === 'all'
+      ? orders
+      : orders.filter((o) => o.status.toLowerCase().includes(statusFilter.toLowerCase()));
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -25,27 +46,27 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
           Artisan Cluster Oversight & UPI Settlement Ledger
         </h1>
         <p className="text-xs text-[#E6D5C3] max-w-2xl">
-          Real-time monitoring of artisan onboarding, non-negative experience compliance, direct UPI QR verification, and courier dispatch logs.
+          Real-time cluster monitoring of artisan onboarding, non-negative experience compliance, direct UPI QR verification, and courier dispatch logs.
         </p>
 
         {/* 4 Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-white/10 text-xs">
           <div className="p-3 bg-white/10 rounded-2xl border border-white/10">
-            <span className="text-[11px] text-[#E6D5C3] block">Platform Volume</span>
+            <span className="text-[11px] text-[#E6D5C3] block">Total Platform Volume</span>
             <span className="text-lg font-bold font-serif text-white mt-0.5 block">
               ₹{totalVolume.toLocaleString('en-IN')}
             </span>
           </div>
 
           <div className="p-3 bg-white/10 rounded-2xl border border-white/10">
-            <span className="text-[11px] text-[#E6D5C3] block">Total Orders</span>
+            <span className="text-[11px] text-[#E6D5C3] block">Tracked Orders</span>
             <span className="text-lg font-bold font-serif text-white mt-0.5 block">
               {orders.length} orders
             </span>
           </div>
 
           <div className="p-3 bg-white/10 rounded-2xl border border-white/10">
-            <span className="text-[11px] text-[#E6D5C3] block">Catalog Items</span>
+            <span className="text-[11px] text-[#E6D5C3] block">Catalog Inventory</span>
             <span className="text-lg font-bold font-serif text-white mt-0.5 block">
               {products.length} crafts
             </span>
@@ -60,11 +81,80 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
         </div>
       </div>
 
+      {/* Cluster Artisan Verification Status Card */}
+      <div className="p-6 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-[#E6D5C3] pb-3">
+          <h3 className="text-base font-bold font-serif text-[#3E2723] flex items-center gap-2">
+            <Users className="w-4 h-4 text-[#8B5E34]" /> Registered Cluster Master Artisans
+          </h3>
+          <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" /> All VPAs & Experience Validated
+          </span>
+        </div>
+
+        <div className="p-4 bg-[#FAF9F7] border border-[#E6D5C3] rounded-2xl flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#8B5E34] text-white flex items-center justify-center font-serif text-xl font-bold">
+              {artisanProfile.name.charAt(0)}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[#3E2723] text-sm">{artisanProfile.name}</span>
+                <span className="text-[10px] font-bold bg-[#E6D5C3] text-[#3E2723] px-2 py-0.5 rounded-full">
+                  Verified Master Artisan
+                </span>
+              </div>
+              <p className="text-[#8C7355] text-xs flex items-center gap-2 mt-0.5">
+                <span>{artisanProfile.craft}</span> ·{' '}
+                <span className="font-bold font-mono">{artisanProfile.experienceYears} Years Exp.</span> ·{' '}
+                <span>{artisanProfile.location}</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 text-xs">
+            <div className="space-y-0.5">
+              <span className="text-[10px] text-[#8C7355] block">Direct UPI VPA ID</span>
+              <span className="font-mono font-bold text-[#8B5E34] bg-white px-2.5 py-1 rounded-lg border border-[#E6D5C3] block">
+                {artisanProfile.upiId}
+              </span>
+            </div>
+            <div className="space-y-0.5">
+              <span className="text-[10px] text-[#8C7355] block">GI Registry Tag</span>
+              <span className="font-bold text-green-800 bg-green-50 px-2.5 py-1 rounded-lg border border-green-200 block">
+                ✓ GI-KUTCH-2026
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Orders & Delivery Auditing Table */}
       <div className="p-6 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs space-y-4">
-        <h3 className="text-base font-bold font-serif text-[#3E2723] flex items-center gap-2">
-          <Truck className="w-4 h-4 text-[#8B5E34]" /> Live Platform Order Fulfillment & Dispatch Status
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E6D5C3] pb-3">
+          <h3 className="text-base font-bold font-serif text-[#3E2723] flex items-center gap-2">
+            <Truck className="w-4 h-4 text-[#8B5E34]" /> Live Platform Order Fulfillment & Dispatch Status
+          </h3>
+
+          {/* Status Filter Buttons */}
+          <div className="flex items-center gap-1.5 text-xs">
+            <Filter className="w-3.5 h-3.5 text-[#8C7355]" />
+            {(['all', 'Placed', 'Dispatched', 'Transit', 'Delivered'] as const).map((filterKey) => (
+              <button
+                key={filterKey}
+                type="button"
+                onClick={() => setStatusFilter(filterKey)}
+                className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                  statusFilter === filterKey
+                    ? 'bg-[#8B5E34] text-white shadow-2xs'
+                    : 'bg-[#FAF9F7] text-[#6D5843] hover:text-[#3E2723] border border-[#E6D5C3]'
+                }`}
+              >
+                {filterKey === 'all' ? 'All Orders' : filterKey}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
@@ -74,12 +164,12 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
                 <th className="pb-3 font-bold">Customer & Shipping Address</th>
                 <th className="pb-3 font-bold">Artisan</th>
                 <th className="pb-3 font-bold">Amount</th>
-                <th className="pb-3 font-bold">Payment</th>
+                <th className="pb-3 font-bold">Payment & Settlement</th>
                 <th className="pb-3 font-bold">Courier & Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E6D5C3]">
-              {orders.map((o) => (
+              {filteredOrders.map((o) => (
                 <tr key={o.id} className="hover:bg-[#FAF9F7]/70 transition-colors">
                   <td className="py-3 font-mono font-bold text-[#3E2723]">{o.trackingId}</td>
                   <td className="py-3">
@@ -94,7 +184,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
                   <td className="py-3 font-bold text-[#8B5E34]">₹{o.totalAmount.toLocaleString('en-IN')}</td>
                   <td className="py-3">
                     <span className="text-[10px] font-bold bg-[#F5F1EE] text-[#8B5E34] border border-[#E6D5C3] px-2 py-0.5 rounded-md">
-                      {o.paymentMethod}
+                      {o.paymentMethod} (Direct Flow)
                     </span>
                   </td>
                   <td className="py-3">

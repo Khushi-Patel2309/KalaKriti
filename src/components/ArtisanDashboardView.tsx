@@ -4,7 +4,8 @@ import { ProductCard } from './ProductCard';
 import { ArtisanOrderManagement } from './ArtisanOrderManagement';
 import { ArtisanProfileView } from './ArtisanProfileView';
 import { AddProductWizard } from './AddProductWizard';
-import { Package, Plus, User, Sparkles, TrendingUp, IndianRupee, Eye, ShoppingBag, Truck, Award } from 'lucide-react';
+import { AdminView } from './AdminView';
+import { Package, Plus, User, Sparkles, TrendingUp, IndianRupee, Eye, ShoppingBag, Truck, Award, ShieldCheck } from 'lucide-react';
 
 interface ArtisanDashboardViewProps {
   profile: ArtisanProfile;
@@ -27,7 +28,7 @@ export const ArtisanDashboardView: React.FC<ArtisanDashboardViewProps> = ({
   onSelectProduct,
   onOpenAskAi,
 }) => {
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'profile' | 'wizard'>('orders');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'profile' | 'wizard' | 'admin'>('orders');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Artisan specific metrics
@@ -121,7 +122,7 @@ export const ArtisanDashboardView: React.FC<ArtisanDashboardViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('orders')}
-          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
             activeTab === 'orders'
               ? 'bg-[#8B5E34] text-white shadow-xs'
               : 'text-[#6D5843] hover:text-[#3E2723] hover:bg-[#FAF9F7]'
@@ -133,7 +134,7 @@ export const ArtisanDashboardView: React.FC<ArtisanDashboardViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('products')}
-          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
             activeTab === 'products'
               ? 'bg-[#8B5E34] text-white shadow-xs'
               : 'text-[#6D5843] hover:text-[#3E2723] hover:bg-[#FAF9F7]'
@@ -145,25 +146,37 @@ export const ArtisanDashboardView: React.FC<ArtisanDashboardViewProps> = ({
         <button
           type="button"
           onClick={() => setActiveTab('profile')}
-          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
             activeTab === 'profile'
               ? 'bg-[#8B5E34] text-white shadow-xs'
               : 'text-[#6D5843] hover:text-[#3E2723] hover:bg-[#FAF9F7]'
           }`}
         >
-          <User className="w-4 h-4" /> Artisan Profile & Experience
+          <User className="w-4 h-4" /> Artisan Profile, Annual Report & Progress
         </button>
 
         <button
           type="button"
           onClick={handleStartAddProduct}
-          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
             activeTab === 'wizard'
               ? 'bg-[#8B5E34] text-white shadow-xs'
               : 'text-[#6D5843] hover:text-[#3E2723] hover:bg-[#FAF9F7]'
           }`}
         >
           <Plus className="w-4 h-4" /> Create New Listing
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('admin')}
+          className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            activeTab === 'admin'
+              ? 'bg-[#3E2723] text-white shadow-xs'
+              : 'text-[#6D5843] hover:text-[#3E2723] hover:bg-[#FAF9F7]'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4 text-[#E6D5C3]" /> Admin Oversight & Trust Center
         </button>
       </div>
 
@@ -210,9 +223,14 @@ export const ArtisanDashboardView: React.FC<ArtisanDashboardViewProps> = ({
         </div>
       )}
 
-      {/* Tab 3: Artisan Profile & Experience */}
+      {/* Tab 3: Artisan Profile, Annual Report & Experience */}
       {activeTab === 'profile' && (
-        <ArtisanProfileView profile={profile} onUpdateProfile={onUpdateProfile} />
+        <ArtisanProfileView
+          profile={profile}
+          onUpdateProfile={onUpdateProfile}
+          products={products}
+          orders={orders}
+        />
       )}
 
       {/* Tab 4: Add/Edit Product Wizard */}
@@ -225,6 +243,15 @@ export const ArtisanDashboardView: React.FC<ArtisanDashboardViewProps> = ({
             setActiveTab('products');
           }}
           onCancel={() => setActiveTab('products')}
+        />
+      )}
+
+      {/* Tab 5: Admin Oversight & Trust Center */}
+      {activeTab === 'admin' && (
+        <AdminView
+          products={products}
+          orders={orders}
+          artisanProfile={profile}
         />
       )}
     </div>

@@ -12,6 +12,7 @@ import {
   Building2,
   BookOpen,
   Languages,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -147,6 +148,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <BookOpen className="w-3.5 h-3.5" /> {t.navCatalog}
               </button>
+
+              <button
+                type="button"
+                onClick={() => onRoleChange('admin')}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl transition-all ${
+                  currentRole === 'admin'
+                    ? 'bg-[#3E2723] text-white shadow-xs'
+                    : 'text-[#6D5843] hover:text-[#3E2723] hover:bg-[#FAF9F7]'
+                }`}
+                title="Marketplace Admin Oversight"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" /> Admin
+              </button>
             </div>
 
             {/* Customer Tracking Shortcut */}
@@ -233,6 +247,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             📖 {t.navCatalog}
+          </button>
+          <button
+            type="button"
+            onClick={() => onRoleChange('admin')}
+            className={`px-3 py-1 rounded-lg shrink-0 font-semibold ${
+              currentRole === 'admin' ? 'bg-[#3E2723] text-white' : 'text-[#6D5843]'
+            }`}
+          >
+            🛡️ Admin
           </button>
         </div>
       </div>
