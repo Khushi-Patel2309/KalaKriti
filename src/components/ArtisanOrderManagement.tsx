@@ -1,6 +1,22 @@
 import React, { useState } from 'react';
 import { Order, OrderStatus, ArtisanProfile } from '../types';
-import { Package, Truck, CheckCircle2, Phone, MapPin, Printer, User, MessageCircle, ExternalLink, AlertCircle, Clock } from 'lucide-react';
+import {
+  Package,
+  Truck,
+  CheckCircle2,
+  Phone,
+  MapPin,
+  Printer,
+  User,
+  MessageCircle,
+  ExternalLink,
+  AlertCircle,
+  Clock,
+  RotateCcw,
+  RefreshCw,
+  AlertTriangle,
+  ShieldCheck,
+} from 'lucide-react';
 
 interface ArtisanOrderManagementProps {
   orders: Order[];
@@ -32,6 +48,17 @@ export const ArtisanOrderManagement: React.FC<ArtisanOrderManagementProps> = ({
     if (filterStatus === 'Pending') return o.status === 'Order Placed' || o.status === 'Accepted by Artisan';
     if (filterStatus === 'Dispatched') return o.status === 'Packed & Dispatched' || o.status === 'In Transit';
     if (filterStatus === 'Delivered') return o.status === 'Delivered';
+    if (filterStatus === 'Returns/Exchanges') {
+      return (
+        o.status === 'Return Requested' ||
+        o.status === 'Return In Transit' ||
+        o.status === 'Returned & Refunded' ||
+        o.status === 'Exchange Requested' ||
+        o.status === 'Exchange In Progress' ||
+        o.status === 'Exchanged'
+      );
+    }
+    if (filterStatus === 'Cancelled') return o.status === 'Cancelled';
     return true;
   });
 
@@ -59,19 +86,19 @@ export const ArtisanOrderManagement: React.FC<ArtisanOrderManagementProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-4 p-6 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs">
         <div>
           <span className="text-xs uppercase tracking-wider font-bold text-[#8B5E34]">
-            Artisan Order Fulfillment & Dispatch
+            Artisan Order Fulfillment, Returns & Dispatch
           </span>
           <h2 className="text-2xl font-bold font-serif text-[#3E2723] mt-1">
             Customer Orders & Delivery Details
           </h2>
           <p className="text-xs text-[#8C7355]">
-            View exact customer delivery addresses, accept orders, and generate courier dispatch labels.
+            View customer delivery addresses, accept orders, manage return/exchange requests, and print packing slips.
           </p>
         </div>
 
         {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-[#FAF9F7] border border-[#E6D5C3] rounded-2xl text-xs font-semibold">
-          {['All', 'Pending', 'Dispatched', 'Delivered'].map((status) => (
+        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#FAF9F7] border border-[#E6D5C3] rounded-2xl text-xs font-semibold">
+          {['All', 'Pending', 'Dispatched', 'Delivered', 'Returns/Exchanges', 'Cancelled'].map((status) => (
             <button
               key={status}
               type="button"
@@ -94,7 +121,7 @@ export const ArtisanOrderManagement: React.FC<ArtisanOrderManagementProps> = ({
           <Package className="w-12 h-12 text-[#A68B6D] mx-auto opacity-70" />
           <h3 className="text-lg font-bold font-serif text-[#3E2723]">No Customer Orders Found</h3>
           <p className="text-xs text-[#8C7355] max-w-md mx-auto">
-            When a customer purchases one of your handmade products, the order with full customer delivery details will appear here immediately with an instant notification.
+            When a customer purchases one of your handmade products or requests a return/exchange, it will appear here immediately.
           </p>
         </div>
       ) : (
@@ -114,11 +141,15 @@ export const ArtisanOrderManagement: React.FC<ArtisanOrderManagementProps> = ({
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm text-[#3E2723]">Order #{order.trackingId}</span>
                       <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                        order.status === 'Delivered'
+                        order.status === 'Cancelled'
+                          ? 'bg-red-100 text-red-800 border border-red-200'
+                          : order.status === 'Return Requested' || order.status === 'Return In Transit' || order.status === 'Returned & Refunded'
+                          ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                          : order.status === 'Exchange Requested' || order.status === 'Exchange In Progress' || order.status === 'Exchanged'
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                          : order.status === 'Delivered'
                           ? 'bg-[#F5F1EE] text-[#8B5E34] border border-[#E6D5C3]'
-                          : order.status === 'Packed & Dispatched' || order.status === 'In Transit'
-                          ? 'bg-[#FAF9F7] text-[#8B5E34] border border-[#E6D5C3]'
-                          : 'bg-[#F5F1EE] text-[#8B5E34] border border-[#E6D5C3]'
+                          : 'bg-[#FAF9F7] text-[#8B5E34] border border-[#E6D5C3]'
                       }`}>
                         {order.status}
                       </span>
@@ -138,6 +169,98 @@ export const ArtisanOrderManagement: React.FC<ArtisanOrderManagementProps> = ({
                   </span>
                 </div>
               </div>
+
+              {/* Cancellation Banner for Artisan */}
+              {order.status === 'Cancelled' && order.cancellationDetails && (
+                <div className="p-4 bg-red-50/80 border border-red-200 rounded-2xl space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-red-900">
+                    <span className="flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-red-700" />
+                      Customer Cancelled Order Before Delivery
+                    </span>
+                    <span className="text-[10px] bg-red-100 text-red-800 px-2 py-0.5 rounded">Do Not Dispatch</span>
+                  </div>
+                  <p className="text-xs text-red-800">
+                    <strong>Reason:</strong> {order.cancellationDetails.reason}
+                    {order.cancellationDetails.comments && ` — "${order.cancellationDetails.comments}"`}
+                  </p>
+                </div>
+              )}
+
+              {/* Return Banner for Artisan */}
+              {(order.status === 'Return Requested' || order.status === 'Return In Transit' || order.status === 'Returned & Refunded') && order.returnDetails && (
+                <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-amber-900">
+                    <span className="flex items-center gap-1.5">
+                      <RotateCcw className="w-4 h-4 text-amber-700" />
+                      Return Request from Customer
+                    </span>
+                    <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded">{order.status}</span>
+                  </div>
+                  <p className="text-xs text-amber-800">
+                    <strong>Reason:</strong> {order.returnDetails.reason}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {order.status === 'Return Requested' && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateOrderStatus(order.id, 'Return In Transit', 'BlueDart Express', 'Reverse pickup scheduled from customer address.')}
+                        className="px-3 py-1.5 text-xs font-bold text-amber-900 bg-amber-200/80 hover:bg-amber-300 rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        <Truck className="w-3.5 h-3.5" /> Approve & Schedule Reverse Pickup
+                      </button>
+                    )}
+                    {order.status === 'Return In Transit' && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateOrderStatus(order.id, 'Returned & Refunded', order.courierPartner, 'Item received back in artisan workshop and refund settled.')}
+                        className="px-3 py-1.5 text-xs font-bold text-white bg-green-700 hover:bg-green-800 rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" /> Confirm Item Received & Settle Refund
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Exchange Banner for Artisan */}
+              {(order.status === 'Exchange Requested' || order.status === 'Exchange In Progress' || order.status === 'Exchanged') && order.exchangeDetails && (
+                <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-blue-900">
+                    <span className="flex items-center gap-1.5">
+                      <RefreshCw className="w-4 h-4 text-blue-700" />
+                      Exchange Replacement Request
+                    </span>
+                    <span className="text-[10px] bg-blue-100 text-blue-900 px-2 py-0.5 rounded">{order.status}</span>
+                  </div>
+                  <p className="text-xs text-blue-800">
+                    <strong>Reason:</strong> {order.exchangeDetails.reason}
+                  </p>
+                  <p className="text-xs text-blue-900 bg-white/80 p-2 rounded-lg border border-blue-200">
+                    <strong>Customer wants:</strong> {order.exchangeDetails.exchangeItemDetails}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {order.status === 'Exchange Requested' && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateOrderStatus(order.id, 'Exchange In Progress', 'BlueDart Express', 'Replacement craft item prepared and reverse pickup arranged.')}
+                        className="px-3 py-1.5 text-xs font-bold text-blue-900 bg-blue-200/80 hover:bg-blue-300 rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        <Package className="w-3.5 h-3.5" /> Accept Exchange & Prepare Replacement
+                      </button>
+                    )}
+                    {order.status === 'Exchange In Progress' && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateOrderStatus(order.id, 'Exchanged', order.courierPartner, 'Replacement handed over and delivered successfully.')}
+                        className="px-3 py-1.5 text-xs font-bold text-white bg-green-700 hover:bg-green-800 rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Mark Exchange Complete
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Order Content: Two Columns (Ordered Product & Customer Delivery Address) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

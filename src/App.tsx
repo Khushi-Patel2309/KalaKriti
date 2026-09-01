@@ -219,6 +219,226 @@ export default function App() {
     showToast('✨ Order placed successfully! Notifications sent to buyer and artisan seller.');
   };
 
+  // Customer Cancel Order Handler
+  const handleCancelOrder = (orderId: string, reason: string, comments?: string) => {
+    const cancelledAt = new Date().toISOString();
+    setOrders((prev) =>
+      prev.map((o) => {
+        if (o.id !== orderId) return o;
+        return {
+          ...o,
+          status: 'Cancelled' as OrderStatus,
+          cancellationDetails: {
+            reason,
+            comments,
+            cancelledAt,
+            refundStatus: 'Initiated',
+          },
+          trackingTimeline: [
+            ...(o.trackingTimeline || []),
+            {
+              date: new Date().toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              location: `${o.shippingDetails.city} Hub`,
+              title: 'Order Cancelled',
+              description: `Cancelled by customer. Reason: ${reason}`,
+              completed: true,
+              current: true,
+            },
+          ],
+        };
+      })
+    );
+
+    const targetOrder = orders.find((o) => o.id === orderId);
+    if (targetOrder) {
+      // Notify Artisan
+      const artisanNotif: AppNotification = {
+        id: 'notif_artisan_cancel_' + Date.now(),
+        recipientRole: 'artisan',
+        recipientId: artisanProfile.id,
+        title: '⚠️ Order Cancelled by Customer',
+        message: `Order #${targetOrder.trackingId} was cancelled by ${targetOrder.shippingDetails.fullName}. Reason: ${reason}. Do not dispatch.`,
+        type: 'order_received',
+        orderId: targetOrder.id,
+        timestamp: Date.now(),
+        read: false,
+      };
+
+      // Notify Buyer
+      const buyerNotif: AppNotification = {
+        id: 'notif_buyer_cancel_' + Date.now(),
+        recipientRole: 'customer',
+        recipientId: targetOrder.customerId,
+        title: '✓ Order Cancelled & Refund Initiated',
+        message: `Your order #${targetOrder.trackingId} has been cancelled. 100% refund of ₹${targetOrder.totalAmount.toLocaleString('en-IN')} will be credited within 1-2 business days.`,
+        type: 'order_received',
+        orderId: targetOrder.id,
+        timestamp: Date.now() + 5,
+        read: false,
+      };
+
+      setNotifications((prev) => [buyerNotif, artisanNotif, ...prev]);
+    }
+    showToast('✓ Order cancelled successfully. 100% refund initiated.');
+  };
+
+  // Customer Return Request Handler
+  const handleRequestReturn = (
+    orderId: string,
+    reason: string,
+    refundMethod: string,
+    comments?: string
+  ) => {
+    const requestedAt = new Date().toISOString();
+    const pickupTrackingId = 'REV-BD' + Math.floor(Math.random() * 900000 + 100000);
+
+    setOrders((prev) =>
+      prev.map((o) => {
+        if (o.id !== orderId) return o;
+        return {
+          ...o,
+          status: 'Return Requested' as OrderStatus,
+          returnDetails: {
+            reason,
+            comments,
+            refundMethod,
+            requestedAt,
+            pickupTrackingId,
+          },
+          trackingTimeline: [
+            ...(o.trackingTimeline || []),
+            {
+              date: new Date().toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              location: `${o.shippingDetails.city} Doorstep`,
+              title: 'Return Request Registered',
+              description: `Doorstep reverse pickup initiated via ${pickupTrackingId}. Reason: ${reason}`,
+              completed: true,
+              current: true,
+            },
+          ],
+        };
+      })
+    );
+
+    const targetOrder = orders.find((o) => o.id === orderId);
+    if (targetOrder) {
+      // Notify Artisan
+      const artisanNotif: AppNotification = {
+        id: 'notif_artisan_ret_' + Date.now(),
+        recipientRole: 'artisan',
+        recipientId: artisanProfile.id,
+        title: '🔄 Return Request Received',
+        message: `Customer ${targetOrder.shippingDetails.fullName} requested return for Order #${targetOrder.trackingId}. Reason: ${reason}.`,
+        type: 'order_received',
+        orderId: targetOrder.id,
+        timestamp: Date.now(),
+        read: false,
+      };
+
+      // Notify Buyer
+      const buyerNotif: AppNotification = {
+        id: 'notif_buyer_ret_' + Date.now(),
+        recipientRole: 'customer',
+        recipientId: targetOrder.customerId,
+        title: '✓ Return Request Registered',
+        message: `Doorstep return pickup assigned (${pickupTrackingId}). Refund of ₹${targetOrder.totalAmount.toLocaleString('en-IN')} via ${refundMethod}.`,
+        type: 'order_received',
+        orderId: targetOrder.id,
+        timestamp: Date.now() + 5,
+        read: false,
+      };
+
+      setNotifications((prev) => [buyerNotif, artisanNotif, ...prev]);
+    }
+    showToast('✓ Return request registered! Doorstep reverse pickup scheduled.');
+  };
+
+  // Customer Exchange Request Handler
+  const handleRequestExchange = (
+    orderId: string,
+    reason: string,
+    exchangeDetails: string,
+    comments?: string
+  ) => {
+    const requestedAt = new Date().toISOString();
+    const exchangeTrackingId = 'EXCH-BD' + Math.floor(Math.random() * 900000 + 100000);
+
+    setOrders((prev) =>
+      prev.map((o) => {
+        if (o.id !== orderId) return o;
+        return {
+          ...o,
+          status: 'Exchange Requested' as OrderStatus,
+          exchangeDetails: {
+            reason,
+            exchangeItemDetails: exchangeDetails,
+            comments,
+            requestedAt,
+            exchangeTrackingId,
+          },
+          trackingTimeline: [
+            ...(o.trackingTimeline || []),
+            {
+              date: new Date().toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              location: `${o.shippingDetails.city} Artisan Workshop`,
+              title: 'Exchange Request Registered',
+              description: `Replacement requested: ${exchangeDetails}. Reason: ${reason}`,
+              completed: true,
+              current: true,
+            },
+          ],
+        };
+      })
+    );
+
+    const targetOrder = orders.find((o) => o.id === orderId);
+    if (targetOrder) {
+      // Notify Artisan
+      const artisanNotif: AppNotification = {
+        id: 'notif_artisan_exch_' + Date.now(),
+        recipientRole: 'artisan',
+        recipientId: artisanProfile.id,
+        title: '🔁 Product Exchange Requested',
+        message: `Customer ${targetOrder.shippingDetails.fullName} requested exchange for Order #${targetOrder.trackingId}. Preferred replacement: ${exchangeDetails}.`,
+        type: 'order_received',
+        orderId: targetOrder.id,
+        timestamp: Date.now(),
+        read: false,
+      };
+
+      // Notify Buyer
+      const buyerNotif: AppNotification = {
+        id: 'notif_buyer_exch_' + Date.now(),
+        recipientRole: 'customer',
+        recipientId: targetOrder.customerId,
+        title: '✓ Exchange Request Registered',
+        message: `Your exchange request for Order #${targetOrder.trackingId} has been sent to the artisan. Replacement tracking: ${exchangeTrackingId}.`,
+        type: 'order_received',
+        orderId: targetOrder.id,
+        timestamp: Date.now() + 5,
+        read: false,
+      };
+
+      setNotifications((prev) => [buyerNotif, artisanNotif, ...prev]);
+    }
+    showToast('✓ Exchange request registered! Artisan has been notified.');
+  };
+
   // Artisan Order Status Update & Notification to Buyer
   const handleUpdateOrderStatus = (
     orderId: string,
@@ -353,6 +573,9 @@ export default function App() {
               setSavedShippingDetails(d);
               showToast('✓ Customer delivery details updated.');
             }}
+            onCancelOrder={handleCancelOrder}
+            onRequestReturn={handleRequestReturn}
+            onRequestExchange={handleRequestExchange}
           />
         )}
 

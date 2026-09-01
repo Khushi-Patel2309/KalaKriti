@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { QrCode, Copy, Check, ShieldCheck, ArrowRight, Smartphone, AlertCircle, Download } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import {
+  QrCode,
+  Copy,
+  Check,
+  ShieldCheck,
+  ArrowRight,
+  Smartphone,
+  AlertCircle,
+  Download,
+  Lock,
+} from 'lucide-react';
 
 interface UpiPaymentModalProps {
   isOpen: boolean;
@@ -20,15 +31,13 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
   orderId = 'KK' + Math.floor(Math.random() * 900000 + 100000),
   onPaymentSuccess,
 }) => {
+  const { language, t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [utr, setUtr] = useState('');
-  const [selectedApp, setSelectedApp] = useState<'any' | 'gpay' | 'phonepe' | 'paytm'>('any');
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
-
-  const upiUri = `upi://pay?pa=${encodeURIComponent(payeeUpiId)}&pn=${encodeURIComponent(payeeName)}&am=${amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(`KalaKriti Order ${orderId}`)}`;
 
   // Quick helper to copy UPI ID
   const handleCopyUpi = () => {
@@ -37,9 +46,65 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Strictly enforce only numbers and max 12 digits
+  const handleUtrChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawVal = e.target.value;
+    // Strip everything except numbers and limit to 12 digits
+    const digitsOnly = rawVal.replace(/\D/g, '').slice(0, 12);
+    setUtr(digitsOnly);
+    if (error) setError('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow control keys
+    if (
+      [
+        'Backspace',
+        'Delete',
+        'Tab',
+        'Escape',
+        'Enter',
+        'ArrowLeft',
+        'ArrowRight',
+        'Home',
+        'End',
+      ].includes(e.key) ||
+      e.ctrlKey ||
+      e.metaKey
+    ) {
+      return;
+    }
+    // Block non-digits
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+    // Block typing if already 12 digits and no text selected
+    const input = e.currentTarget;
+    const hasSelection =
+      input.selectionStart !== null &&
+      input.selectionEnd !== null &&
+      input.selectionEnd > input.selectionStart;
+    if (utr.length >= 12 && !hasSelection) {
+      e.preventDefault();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text');
+    const digitsOnly = pasted.replace(/\D/g, '').slice(0, 12);
+    setUtr(digitsOnly);
+    if (error) setError('');
+  };
+
   const handleVerify = () => {
-    if (!utr.trim() || utr.trim().length < 6) {
-      setError('Please enter the 12-digit UPI Reference Number / UTR from your payment app.');
+    if (utr.length !== 12) {
+      setError(
+        language === 'hi'
+          ? `UPI आईडी / UTR संदर्भ संख्या केवल 12 अंकों की होनी चाहिए (वर्तमान: ${utr.length}/12 अंक)।`
+          : `UPI ID / UTR must be strictly 12 digits only (currently ${utr.length}/12 digits).`
+      );
       return;
     }
     setError('');
@@ -47,18 +112,20 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
 
     setTimeout(() => {
       setIsVerifying(false);
-      onPaymentSuccess(utr.trim());
+      onPaymentSuccess(utr);
     }, 1200);
   };
 
   const handleSimulateInstantPay = () => {
     setIsVerifying(true);
-    const mockUtr = 'UPI/' + Math.floor(Math.random() * 900000000000 + 100000000000) + '/HDFC';
-    setUtr(mockUtr);
+    // Generate valid 12-digit numeric reference
+    const mock12DigitUtr = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+    setUtr(mock12DigitUtr);
+    setError('');
 
     setTimeout(() => {
       setIsVerifying(false);
-      onPaymentSuccess(mockUtr);
+      onPaymentSuccess(mock12DigitUtr);
     }, 1000);
   };
 
@@ -72,8 +139,14 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
               <QrCode className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold font-serif text-[#3E2723]">Scan & Pay with UPI QR</h3>
-              <p className="text-xs text-[#8C7355]">Zero platform fee · Direct to artisan collective</p>
+              <h3 className="text-base font-bold font-serif text-[#3E2723]">
+                {language === 'hi' ? 'UPI QR स्कैन और भुगतान' : 'Scan & Pay with UPI QR'}
+              </h3>
+              <p className="text-xs text-[#8C7355]">
+                {language === 'hi'
+                  ? '0% प्लेटफॉर्म शुल्क · सीधे कारीगर समूह को'
+                  : 'Zero platform fee · Direct to artisan collective'}
+              </p>
             </div>
           </div>
           <button
@@ -90,16 +163,18 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
           {/* Amount Badge */}
           <div className="flex items-center justify-between p-3.5 bg-[#FAF9F7] border border-[#E6D5C3] rounded-2xl">
             <div>
-              <span className="text-xs text-[#8C7355] block">Total Payable Amount</span>
+              <span className="text-xs text-[#8C7355] block">
+                {language === 'hi' ? 'कुल देय राशि' : 'Total Payable Amount'}
+              </span>
               <span className="text-2xl font-bold font-serif text-[#8B5E34]">
                 ₹{amount.toLocaleString('en-IN')}
               </span>
             </div>
             <div className="text-right">
               <span className="text-[10px] uppercase font-bold text-[#8B5E34] bg-white border border-[#E6D5C3] px-2 py-0.5 rounded-md">
-                Verified Merchant
+                {language === 'hi' ? 'सत्यापित खाता' : 'Verified Merchant'}
               </span>
-              <span className="text-xs text-[#8C7355] block mt-0.5">Order Ref: #{orderId}</span>
+              <span className="text-xs text-[#8C7355] block mt-0.5">Ref: #{orderId}</span>
             </div>
           </div>
 
@@ -131,7 +206,16 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
                 <circle cx="80" cy="80" r="16" fill="white" stroke="#8B5E34" strokeWidth="2" />
                 <path d="M80 69 C76 74 77 78 80 80 C83 78 84 74 80 69 Z" fill="#8B5E34" />
                 <circle cx="80" cy="83" r="3" fill="#3E2723" />
-                <text x="80" y="93" textAnchor="middle" fontSize="6" fontWeight="bold" fill="#3E2723">UPI</text>
+                <text
+                  x="80"
+                  y="93"
+                  textAnchor="middle"
+                  fontSize="6"
+                  fontWeight="bold"
+                  fill="#3E2723"
+                >
+                  UPI
+                </text>
               </svg>
             </div>
 
@@ -145,42 +229,77 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
                 className="p-1.5 text-[#8C7355] hover:text-[#8B5E34] bg-[#FAF9F7] hover:bg-[#F5F1EE] border border-[#E6D5C3] rounded-lg transition-colors"
                 title="Copy UPI ID"
               >
-                {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                {copied ? (
+                  <Check className="w-4 h-4 text-green-600" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
               </button>
             </div>
-            <p className="text-[11px] text-[#8C7355] mt-1">
-              Works with Google Pay, PhonePe, Paytm, BHIM & all Indian banking apps
+            <p className="text-[11px] text-[#8C7355] mt-1 text-center">
+              {language === 'hi'
+                ? 'Google Pay, PhonePe, Paytm, BHIM एवं सभी बैंक UPI ऐप से स्कैन करें'
+                : 'Works with Google Pay, PhonePe, Paytm, BHIM & all Indian banking apps'}
             </p>
           </div>
 
           {/* Quick Pay / UTR Verification Input */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-[#3E2723] uppercase tracking-wider block">
-              Enter 12-Digit UTR / Transaction ID
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-[#3E2723] uppercase tracking-wider block">
+                {language === 'hi'
+                  ? '12-अंकीय UPI UTR / संदर्भ संख्या दर्ज करें'
+                  : 'Enter 12-Digit UPI UTR / Reference ID'}
+              </label>
+              <span
+                className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-md border ${
+                  utr.length === 12
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-[#FAF9F7] text-[#8C7355] border-[#E6D5C3]'
+                }`}
+              >
+                {utr.length}/12 {language === 'hi' ? 'अंक' : 'digits'}
+              </span>
+            </div>
+
             <div className="flex gap-2">
               <input
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]{12}"
+                maxLength={12}
                 value={utr}
-                onChange={(e) => {
-                  setUtr(e.target.value);
-                  setError('');
-                }}
-                placeholder="e.g. 482910382910 or UPI/3829..."
-                className="flex-1 px-3.5 py-2.5 text-sm bg-white border border-[#E6D5C3] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#8B5E34] font-mono text-[#3E2723]"
+                onChange={handleUtrChange}
+                onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
+                placeholder="482910382910"
+                className="flex-1 px-3.5 py-2.5 text-sm bg-white border border-[#E6D5C3] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#8B5E34] font-mono tracking-wider font-bold text-[#3E2723]"
               />
               <button
                 type="button"
                 onClick={handleVerify}
-                disabled={isVerifying}
-                className="px-4 py-2.5 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl shadow-xs disabled:opacity-60 transition-colors whitespace-nowrap"
+                disabled={isVerifying || utr.length !== 12}
+                className="px-4 py-2.5 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl shadow-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
               >
-                {isVerifying ? 'Verifying...' : 'Confirm Payment'}
+                {isVerifying
+                  ? language === 'hi'
+                    ? 'सत्यापित हो रहा है...'
+                    : 'Verifying...'
+                  : language === 'hi'
+                  ? 'भुगतान की पुष्टि करें'
+                  : 'Confirm Payment'}
               </button>
             </div>
-            {error && (
-              <p className="text-xs text-[#8B5E34] flex items-center gap-1 font-medium">
-                <AlertCircle className="w-3.5 h-3.5" /> {error}
+
+            {error ? (
+              <p className="text-xs text-red-600 flex items-center gap-1 font-medium">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {error}
+              </p>
+            ) : (
+              <p className="text-[10px] text-[#8C7355]">
+                {language === 'hi'
+                  ? 'UPI ऐप से भुगतान के बाद प्राप्त 12 अंकों का संदर्भ नंबर दर्ज करें (अधिकतम 12 अंक)।'
+                  : 'Enter the 12-digit numeric reference ID from your UPI app receipt. Strictly 12 digits only.'}
               </p>
             )}
           </div>
@@ -189,7 +308,9 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
           <div className="p-3 bg-[#F5F1EE] border border-[#E6D5C3] rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#8B5E34]" />
-              <span className="text-xs font-semibold text-[#3E2723]">Prototyping / Quick Test</span>
+              <span className="text-xs font-semibold text-[#3E2723]">
+                {language === 'hi' ? 'त्वरित परीक्षण / प्रोटोटाइप' : 'Prototyping / Quick Test'}
+              </span>
             </div>
             <button
               type="button"
@@ -197,7 +318,7 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
               disabled={isVerifying}
               className="text-xs font-bold text-[#8B5E34] hover:underline bg-white px-2.5 py-1 rounded-lg border border-[#E6D5C3] shadow-2xs"
             >
-              ⚡ Instant 1-Click Pay
+              {language === 'hi' ? '⚡ 1-क्लिक 12-अंक UPI भुगतान' : '⚡ 1-Click 12-Digit Pay'}
             </button>
           </div>
         </div>
@@ -205,3 +326,4 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
     </div>
   );
 };
+

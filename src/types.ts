@@ -95,7 +95,14 @@ export type OrderStatus =
   | 'Packed & Dispatched'
   | 'In Transit'
   | 'Out for Delivery'
-  | 'Delivered';
+  | 'Delivered'
+  | 'Cancelled'
+  | 'Return Requested'
+  | 'Return In Transit'
+  | 'Returned & Refunded'
+  | 'Exchange Requested'
+  | 'Exchange In Progress'
+  | 'Exchanged';
 
 export interface TrackingCheckpoint {
   title: string;
@@ -104,6 +111,21 @@ export interface TrackingCheckpoint {
   description: string;
   completed: boolean;
   current?: boolean;
+}
+
+export interface OrderReturnExchangeDetails {
+  type: 'cancel' | 'return' | 'exchange';
+  reason: string;
+  comments?: string;
+  requestedAt: number;
+  status: 'Pending' | 'Approved' | 'Pickup Scheduled' | 'In Transit' | 'Completed' | 'Rejected';
+  refundAmount?: number;
+  refundMethod?: string;
+  refundStatus?: 'Initiated' | 'Processed' | 'Not Applicable';
+  exchangeItemDetails?: string;
+  pickupDate?: string;
+  pickupTrackingId?: string;
+  courierPartner?: string;
 }
 
 export interface Order {
@@ -124,6 +146,9 @@ export interface Order {
   trackingTimeline: TrackingCheckpoint[];
   buyerId?: string;
   customerId?: string;
+  cancellationDetails?: OrderReturnExchangeDetails;
+  returnDetails?: OrderReturnExchangeDetails;
+  exchangeDetails?: OrderReturnExchangeDetails;
   createdAt: number;
   updatedAt?: number;
 }

@@ -115,8 +115,44 @@ export interface Translations {
   statusInTransit: string;
   statusOutForDelivery: string;
   statusDelivered: string;
+  statusCancelled: string;
+  statusReturnRequested: string;
+  statusReturnInTransit: string;
+  statusReturnedRefunded: string;
+  statusExchangeRequested: string;
+  statusExchangeInProgress: string;
+  statusExchanged: string;
   liveMapTracking: string;
   needHelp: string;
+
+  // Cancel, Return & Exchange Actions
+  cancelOrderBtn: string;
+  cancelOrderTitle: string;
+  cancelOrderDesc: string;
+  cancelReasonLabel: string;
+  cancelReasonPlaceholder: string;
+  cancelConfirmBtn: string;
+  cancelSuccessToast: string;
+
+  returnProductBtn: string;
+  returnProductTitle: string;
+  returnProductDesc: string;
+  returnReasonLabel: string;
+  returnReasonPlaceholder: string;
+  returnPickupAddress: string;
+  returnRefundOptionLabel: string;
+  returnSubmitBtn: string;
+  returnSuccessToast: string;
+
+  exchangeProductBtn: string;
+  exchangeProductTitle: string;
+  exchangeProductDesc: string;
+  exchangeReasonLabel: string;
+  exchangeReasonPlaceholder: string;
+  exchangeReplacementReqLabel: string;
+  exchangeReplacementReqPlaceholder: string;
+  exchangeSubmitBtn: string;
+  exchangeSuccessToast: string;
 
   // Artisan Portal
   artisanDashboardTitle: string;
@@ -287,8 +323,44 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     statusInTransit: 'In Transit',
     statusOutForDelivery: 'Out for Delivery',
     statusDelivered: 'Delivered to Doorstep',
+    statusCancelled: 'Order Cancelled & Refunded',
+    statusReturnRequested: 'Return Requested & Reverse Pickup',
+    statusReturnInTransit: 'Return In Transit',
+    statusReturnedRefunded: 'Returned & Refund Processed',
+    statusExchangeRequested: 'Exchange Requested',
+    statusExchangeInProgress: 'Exchange In Progress',
+    statusExchanged: 'Exchange Completed',
     liveMapTracking: 'Courier Routing Status',
     needHelp: 'Need Artisan Help?',
+
+    // Cancel, Return & Exchange Actions
+    cancelOrderBtn: 'Cancel Order',
+    cancelOrderTitle: 'Cancel Handcrafted Order',
+    cancelOrderDesc: 'You can cancel your order before it is delivered. A 100% full refund will be immediately initiated to your original payment method.',
+    cancelReasonLabel: 'Reason for Cancellation',
+    cancelReasonPlaceholder: 'Select or specify reason for cancellation...',
+    cancelConfirmBtn: 'Confirm Cancellation & Initiate Refund',
+    cancelSuccessToast: 'Order cancelled. 100% refund initiated to your payment source.',
+
+    returnProductBtn: 'Request Return',
+    returnProductTitle: 'Request Return for Handcrafted Order',
+    returnProductDesc: 'Items can be returned within 7 days of delivery. BlueDart reverse pickup will be scheduled at your doorstep.',
+    returnReasonLabel: 'Reason for Return',
+    returnReasonPlaceholder: 'Select why you would like to return this craft...',
+    returnPickupAddress: 'Reverse Pickup Address',
+    returnRefundOptionLabel: 'Refund Destination',
+    returnSubmitBtn: 'Schedule Reverse Pickup & Return',
+    returnSuccessToast: 'Return requested. Courier reverse pickup scheduled.',
+
+    exchangeProductBtn: 'Request Exchange',
+    exchangeProductTitle: 'Request Exchange for Handcrafted Order',
+    exchangeProductDesc: 'Exchange your craft for a different size, colorway, or request a fresh handmade replacement.',
+    exchangeReasonLabel: 'Reason for Exchange',
+    exchangeReasonPlaceholder: 'Select why you need an exchange...',
+    exchangeReplacementReqLabel: 'Replacement Craft Requirements / Notes',
+    exchangeReplacementReqPlaceholder: 'e.g. Please send Size L instead of M, or request deeper indigo blue shade...',
+    exchangeSubmitBtn: 'Submit Exchange Request',
+    exchangeSuccessToast: 'Exchange request submitted. Artisan notified for replacement.',
 
     artisanDashboardTitle: 'Artisan Workshop & Commerce Portal',
     artisanDashboardSub: 'Manage your handcrafted inventory, record new listings via voice in Hindi or English, enhance photos, and track direct UPI payments.',
@@ -456,8 +528,44 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     statusInTransit: 'रास्ते में है',
     statusOutForDelivery: 'डिलीवरी के लिए निकला',
     statusDelivered: 'घर पर सफलतापूर्वक डिलीवर',
+    statusCancelled: 'ऑर्डर रद्द और 100% रिफंड शुरू',
+    statusReturnRequested: 'वापसी अनुरोध और रिवर्स पिकअप',
+    statusReturnInTransit: 'वापसी पार्सल रास्ते में है',
+    statusReturnedRefunded: 'वापसी पूर्ण और रिफंड जमा हुआ',
+    statusExchangeRequested: 'एक्सचेंज अनुरोध प्राप्त हुआ',
+    statusExchangeInProgress: 'एक्सचेंज प्रतिस्थापन प्रगति पर है',
+    statusExchanged: 'एक्सचेंज सफलतापूर्वक संपन्न',
     liveMapTracking: 'कूरियर रूट की स्थिति',
     needHelp: 'कारीगर से सहायता चाहिए?',
+
+    // Cancel, Return & Exchange Actions
+    cancelOrderBtn: 'ऑर्डर रद्द करें',
+    cancelOrderTitle: 'हस्तशिल्प ऑर्डर रद्द करें',
+    cancelOrderDesc: 'डिलीवरी से पहले आप अपना ऑर्डर रद्द कर सकते हैं। आपके मूल भुगतान माध्यम (UPI/कार्ड) पर 100% पूरा रिफंड तुरंत शुरू कर दिया जाएगा।',
+    cancelReasonLabel: 'रद्द करने का कारण',
+    cancelReasonPlaceholder: 'रद्द करने का कारण चुनें या लिखें...',
+    cancelConfirmBtn: 'रद्द करने की पुष्टि करें और रिफंड लें',
+    cancelSuccessToast: 'ऑर्डर रद्द कर दिया गया। आपके भुगतान माध्यम पर 100% रिफंड शुरू हो गया है।',
+
+    returnProductBtn: 'वापसी अनुरोध (Return)',
+    returnProductTitle: 'हस्तशिल्प उत्पाद वापसी अनुरोध',
+    returnProductDesc: 'डिलीवरी के 7 दिनों के भीतर आप वापसी का अनुरोध कर सकते हैं। ब्लू डार्ट कूरियर आपके घर से रिवर्स पिकअप करेगा।',
+    returnReasonLabel: 'वापसी का कारण',
+    returnReasonPlaceholder: 'वापसी का कारण चुनें...',
+    returnPickupAddress: 'रिवर्स पिकअप का पता',
+    returnRefundOptionLabel: 'रिफंड प्राप्त करने का माध्यम',
+    returnSubmitBtn: 'रिवर्स पिकअप शेड्यूल करें और वापसी भेजें',
+    returnSuccessToast: 'वापसी अनुरोध दर्ज हुआ। कूरियर पिकअप निर्धारित किया गया है।',
+
+    exchangeProductBtn: 'एक्सचेंज अनुरोध (Exchange)',
+    exchangeProductTitle: 'हस्तशिल्प उत्पाद एक्सचेंज अनुरोध',
+    exchangeProductDesc: 'अपने हस्तशिल्प उत्पाद को दूसरे आकार, रंग या नए हस्तनिर्मित प्रतिस्थापन के साथ बदलें।',
+    exchangeReasonLabel: 'एक्सचेंज का कारण',
+    exchangeReasonPlaceholder: 'एक्सचेंज का कारण चुनें...',
+    exchangeReplacementReqLabel: 'नए बदले जाने वाले उत्पाद का विवरण / निर्देश',
+    exchangeReplacementReqPlaceholder: 'उदा. मुझे M की जगह L साइज़ चाहिए, या गहरा नीला रंग चाहिए...',
+    exchangeSubmitBtn: 'एक्सचेंज अनुरोध सबमिट करें',
+    exchangeSuccessToast: 'एक्सचेंज अनुरोध सबमिट हुआ। कारीगर को नया उत्पाद तैयार करने की सूचना भेजी गई।',
 
     artisanDashboardTitle: 'कारीगर कार्यशाला और बाज़ार पोर्टल',
     artisanDashboardSub: 'अपनी हस्तशिल्प सूची प्रबंधित करें, हिंदी या अंग्रेजी में आवाज़ द्वारा नए उत्पाद जोड़ें, फ़ोटो सुधारें और सीधे UPI भुगतान देखें।',

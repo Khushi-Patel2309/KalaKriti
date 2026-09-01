@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Order, ShippingDetails } from '../types';
 import { DeliveryTracking } from './DeliveryTracking';
+import { CancelOrderModal } from './CancelOrderModal';
+import { ReturnExchangeModal } from './ReturnExchangeModal';
 import { useLanguage } from '../context/LanguageContext';
 import {
   Package,
@@ -11,6 +13,10 @@ import {
   Home,
   ChevronRight,
   Edit2,
+  AlertTriangle,
+  RotateCcw,
+  RefreshCw,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface CustomerOrdersViewProps {
@@ -19,6 +25,9 @@ interface CustomerOrdersViewProps {
   onNavigateToShop: () => void;
   savedShippingDetails?: ShippingDetails;
   onUpdateShippingDetails?: (details: ShippingDetails) => void;
+  onCancelOrder?: (orderId: string, reason: string, comments?: string) => void;
+  onRequestReturn?: (orderId: string, reason: string, refundMethod: string, comments?: string) => void;
+  onRequestExchange?: (orderId: string, reason: string, exchangeDetails: string, comments?: string) => void;
 }
 
 export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
@@ -27,10 +36,18 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
   onNavigateToShop,
   savedShippingDetails,
   onUpdateShippingDetails,
+  onCancelOrder,
+  onRequestReturn,
+  onRequestExchange,
 }) => {
   const { language, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'tracking' | 'shipping-details'>('tracking');
   const [selectedTrackingOrder, setSelectedTrackingOrder] = useState<Order | null>(null);
+
+  // Modals state
+  const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
+  const [returnExchangeOrder, setReturnExchangeOrder] = useState<Order | null>(null);
+  const [returnExchangeMode, setReturnExchangeMode] = useState<'return' | 'exchange'>('return');
 
   // Address edit state
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -72,11 +89,15 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
 
   // If viewing single order tracking detail
   if (selectedTrackingOrder) {
+    const updatedSelected = orders.find(o => o.id === selectedTrackingOrder.id) || selectedTrackingOrder;
     return (
       <DeliveryTracking
-        order={selectedTrackingOrder}
+        order={updatedSelected}
         onBackToOrders={() => setSelectedTrackingOrder(null)}
         onOpenProduct={onOpenProduct}
+        onCancelOrder={onCancelOrder}
+        onRequestReturn={onRequestReturn}
+        onRequestExchange={onRequestExchange}
       />
     );
   }
@@ -236,6 +257,110 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                     <p className="text-[10px] text-[#8B5E34] font-semibold mt-1">
                       {t.estimatedArrival}: {order.estimatedDelivery}
                     </p>
+                  </div>
+                </div>
+
+                {/* Cancellation / Return / Exchange Info Strip */}
+                {order.status === 'Cancelled' && order.cancellationDetails && (
+                  <div className="p-3 bg-red-50/70 border border-red-200 rounded-xl text-xs text-red-900 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <AlertTriangle className="w-3.5 h-3.5 text-red-700 shrink-0" />
+                      <span className="truncate">
+                        <strong>{language === 'hi' ? 'रद्द:' : 'Cancelled:'}</strong> {order.cancellationDetails.reason}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded shrink-0">
+                      {language === 'hi' ? 'रिफंड सक्रिय' : '100% Refunded'}
+                    </span>
+                  </div>
+                )}
+
+                {(order.status === 'Return Requested' || order.status === 'Return In Transit' || order.status === 'Returned & Refunded') && order.returnDetails && (
+                  <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                      <span className="truncate">
+                        <strong>{language === 'hi' ? 'वापसी अनुरोध:' : 'Return:'}</strong> {order.returnDetails.reason}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded shrink-0">
+                      {order.status}
+                    </span>
+                  </div>
+                )}
+
+                {(order.status === 'Exchange Requested' || order.status === 'Exchange In Progress' || order.status === 'Exchanged') && order.exchangeDetails && (
+                  <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <RefreshCw className="w-3.5 h-3.5 text-blue-700 shrink-0" />
+                      <span className="truncate">
+                        <strong>{language === 'hi' ? 'एक्सचेंज अनुरोध:' : 'Exchange:'}</strong> {order.exchangeDetails.reason}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-blue-800 bg-blue-100 px-2 py-0.5 rounded shrink-0">
+                      {order.status}
+                    </span>
+                  </div>
+                )}
+
+                {/* Action Buttons Row */}
+                <div className="pt-2 border-t border-[#E6D5C3] flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[11px] text-[#8C7355]">
+                    {order.status === 'Delivered'
+                      ? language === 'hi'
+                        ? 'डिलीवरी सत्यापित · 7-दिवसीय आसान वापसी व एक्सचेंज'
+                        : 'Verified Delivery · 7-Day Easy Return & Exchange'
+                      : order.status === 'Cancelled'
+                      ? language === 'hi'
+                        ? 'यह ऑर्डर रद्द किया जा चुका है'
+                        : 'This order was cancelled'
+                      : language === 'hi'
+                      ? 'डिलीवरी से पहले रद्द करने की सुविधा उपलब्ध'
+                      : 'Cancellable prior to delivery'}
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    {/* Cancellation Button */}
+                    {(order.status === 'Order Placed' || order.status === 'Accepted by Artisan' || order.status === 'Packed & Dispatched') && onCancelOrder && (
+                      <button
+                        type="button"
+                        onClick={() => setCancellingOrder(order)}
+                        className="px-3 py-1.5 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        <AlertTriangle className="w-3 h-3" />
+                        {t.cancelOrderBtn}
+                      </button>
+                    )}
+
+                    {/* Return Button */}
+                    {order.status === 'Delivered' && onRequestReturn && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReturnExchangeOrder(order);
+                          setReturnExchangeMode('return');
+                        }}
+                        className="px-3 py-1.5 text-xs font-bold text-[#8B5E34] bg-white hover:bg-[#F5F1EE] border border-[#E6D5C3] rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        {t.returnProductBtn}
+                      </button>
+                    )}
+
+                    {/* Exchange Button */}
+                    {order.status === 'Delivered' && onRequestExchange && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReturnExchangeOrder(order);
+                          setReturnExchangeMode('exchange');
+                        }}
+                        className="px-3 py-1.5 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        {t.exchangeProductBtn}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -456,6 +581,41 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* Cancellation Modal */}
+      {cancellingOrder && onCancelOrder && (
+        <CancelOrderModal
+          order={cancellingOrder}
+          isOpen={Boolean(cancellingOrder)}
+          onClose={() => setCancellingOrder(null)}
+          onConfirmCancel={(orderId, reason, comments) => {
+            onCancelOrder(orderId, reason, comments);
+            setCancellingOrder(null);
+          }}
+        />
+      )}
+
+      {/* Return / Exchange Modal */}
+      {returnExchangeOrder && (
+        <ReturnExchangeModal
+          order={returnExchangeOrder}
+          isOpen={Boolean(returnExchangeOrder)}
+          initialMode={returnExchangeMode}
+          onClose={() => setReturnExchangeOrder(null)}
+          onSubmitReturn={(orderId, reason, refundMethod, comments) => {
+            if (onRequestReturn) {
+              onRequestReturn(orderId, reason, refundMethod, comments);
+            }
+            setReturnExchangeOrder(null);
+          }}
+          onSubmitExchange={(orderId, reason, exchangeDetails, comments) => {
+            if (onRequestExchange) {
+              onRequestExchange(orderId, reason, exchangeDetails, comments);
+            }
+            setReturnExchangeOrder(null);
+          }}
+        />
       )}
     </div>
   );
