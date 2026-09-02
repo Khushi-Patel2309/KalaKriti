@@ -28,12 +28,13 @@ import { AdminView } from './components/AdminView';
 import { NotificationCenter } from './components/NotificationCenter';
 import { AskKalaKritiAiModal } from './components/AskKalaKritiAiModal';
 import { KalaKritiLogo } from './components/KalaKritiLogo';
+import { RoleSelectorView } from './components/RoleSelectorView';
 import { Sparkles, Bot, ShoppingBag, Truck, Heart, ArrowUp } from 'lucide-react';
 
 export default function App() {
   // Persistence State
   const [currentRole, setCurrentRole] = useState<Role>('customer');
-  const [activeView, setActiveView] = useState<string>('home');
+  const [activeView, setActiveView] = useState<string>('portal-select');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Domain State
@@ -126,6 +127,16 @@ export default function App() {
     else if (newRole === 'b2b') setActiveView('b2b');
     else if (newRole === 'catalog') setActiveView('catalog');
     else if (newRole === 'admin') setActiveView('admin');
+  };
+
+  const handlePortalSelect = (selectedRole: Role) => {
+    handleRoleChange(selectedRole);
+  };
+
+  const handleLandingSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentRole('customer');
+    setActiveView('home');
   };
 
   // Cart Operations
@@ -524,6 +535,32 @@ export default function App() {
     }
   };
 
+  if (activeView === 'portal-select') {
+    return (
+      <>
+        {/* Toast Notification Banner */}
+        {toastMessage && (
+          <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-[#3E2723] text-white px-5 py-2.5 rounded-full shadow-2xl text-xs font-semibold flex items-center gap-2 border border-[#E6D5C3]/30 animate-in fade-in slide-in-from-top-3">
+            <Sparkles className="w-4 h-4 text-[#A68B6D]" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
+        <RoleSelectorView
+          onSelectRole={handlePortalSelect}
+          onSearch={handleLandingSearch}
+          onOpenAskAi={() => setIsAskAiOpen(true)}
+        />
+
+        {/* AI Assistant Chat Modal */}
+        <AskKalaKritiAiModal
+          isOpen={isAskAiOpen}
+          onClose={() => setIsAskAiOpen(false)}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F5F2] text-[#3E2723] selection:bg-[#8B5E34]/20 selection:text-[#8B5E34]">
       {/* Toast Notification Banner */}
@@ -534,7 +571,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Header Navigation */}
+      {/* Header Navigation with Portal Selector Switcher */}
       <Navbar
         currentRole={currentRole}
         onRoleChange={handleRoleChange}
@@ -546,6 +583,7 @@ export default function App() {
         onOpenCart={() => setIsCartOpen(true)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onOpenPortalSelect={() => setActiveView('portal-select')}
       />
 
       {/* Main Content Area */}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Product, Order, ArtisanProfile } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 import {
   ShieldCheck,
   Users,
@@ -23,6 +24,7 @@ interface AdminViewProps {
 }
 
 export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanProfile }) => {
+  const { language, t } = useLanguage();
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const totalVolume = orders.reduce((sum, o) => sum + o.totalAmount, 0);
@@ -39,43 +41,53 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-[#E6D5C3]" />
           <span className="text-xs uppercase tracking-wider font-bold text-[#E6D5C3]">
-            KalaKriti Marketplace Administration & Trust Center
+            {language === 'hi' ? 'कलाकृति बाज़ार प्रशासन एवं विश्वास केंद्र' : 'KalaKriti Marketplace Administration & Trust Center'}
           </span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold font-serif text-white">
-          Artisan Cluster Oversight & UPI Settlement Ledger
+          {language === 'hi' ? 'कारीगर क्लस्टर निगरानी एवं प्रत्यक्ष UPI सेटलमेंट लेजर' : 'Artisan Cluster Oversight & UPI Settlement Ledger'}
         </h1>
         <p className="text-xs text-[#E6D5C3] max-w-2xl">
-          Real-time cluster monitoring of artisan onboarding, non-negative experience compliance, direct UPI QR verification, and courier dispatch logs.
+          {language === 'hi'
+            ? 'कारीगर ऑनबोर्डिंग, गैर-ऋणात्मक अनुभव अनुपालन, प्रत्यक्ष UPI QR सत्यापन और कूरियर प्रेषण लॉग की वास्तविक समय निगरानी।'
+            : 'Real-time cluster monitoring of artisan onboarding, non-negative experience compliance, direct UPI QR verification, and courier dispatch logs.'}
         </p>
 
         {/* 4 Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-white/10 text-xs">
           <div className="p-3 bg-white/10 rounded-2xl border border-white/10">
-            <span className="text-[11px] text-[#E6D5C3] block">Total Platform Volume</span>
+            <span className="text-[11px] text-[#E6D5C3] block">
+              {language === 'hi' ? 'कुल प्लेटफ़ॉर्म टर्नओवर' : 'Total Platform Volume'}
+            </span>
             <span className="text-lg font-bold font-serif text-white mt-0.5 block">
               ₹{totalVolume.toLocaleString('en-IN')}
             </span>
           </div>
 
           <div className="p-3 bg-white/10 rounded-2xl border border-white/10">
-            <span className="text-[11px] text-[#E6D5C3] block">Tracked Orders</span>
+            <span className="text-[11px] text-[#E6D5C3] block">
+              {language === 'hi' ? 'कुल ट्रैक किए गए ऑर्डर' : 'Tracked Orders'}
+            </span>
             <span className="text-lg font-bold font-serif text-white mt-0.5 block">
-              {orders.length} orders
+              {orders.length} {language === 'hi' ? 'ऑर्डर' : 'orders'}
             </span>
           </div>
 
           <div className="p-3 bg-white/10 rounded-2xl border border-white/10">
-            <span className="text-[11px] text-[#E6D5C3] block">Catalog Inventory</span>
+            <span className="text-[11px] text-[#E6D5C3] block">
+              {language === 'hi' ? 'कैटलॉग हस्तशिल्प' : 'Catalog Inventory'}
+            </span>
             <span className="text-lg font-bold font-serif text-white mt-0.5 block">
-              {products.length} crafts
+              {products.length} {language === 'hi' ? 'कलाकृतियाँ' : 'crafts'}
             </span>
           </div>
 
           <div className="p-3 bg-white/10 rounded-2xl border border-white/10">
-            <span className="text-[11px] text-[#E6D5C3] block">Zero Commission Direct Flow</span>
+            <span className="text-[11px] text-[#E6D5C3] block">
+              {language === 'hi' ? 'शून्य कमीशन प्रत्यक्ष प्रवाह' : 'Zero Commission Direct Flow'}
+            </span>
             <span className="text-lg font-bold font-serif text-[#E6D5C3] mt-0.5 block">
-              100% to Artisans
+              {language === 'hi' ? '100% कारीगरों को' : '100% to Artisans'}
             </span>
           </div>
         </div>
@@ -85,10 +97,12 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
       <div className="p-6 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-[#E6D5C3] pb-3">
           <h3 className="text-base font-bold font-serif text-[#3E2723] flex items-center gap-2">
-            <Users className="w-4 h-4 text-[#8B5E34]" /> Registered Cluster Master Artisans
+            <Users className="w-4 h-4 text-[#8B5E34]" />{' '}
+            {language === 'hi' ? 'पंजीकृत क्लस्टर मास्टर कारीगर' : 'Registered Cluster Master Artisans'}
           </h3>
           <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3" /> All VPAs & Experience Validated
+            <CheckCircle2 className="w-3 h-3" />{' '}
+            {language === 'hi' ? 'सभी VPA और अनुभव सत्यापित' : 'All VPAs & Experience Validated'}
           </span>
         </div>
 
@@ -101,12 +115,14 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
               <div className="flex items-center gap-2">
                 <span className="font-bold text-[#3E2723] text-sm">{artisanProfile.name}</span>
                 <span className="text-[10px] font-bold bg-[#E6D5C3] text-[#3E2723] px-2 py-0.5 rounded-full">
-                  Verified Master Artisan
+                  {language === 'hi' ? 'सत्यापित मास्टर कारीगर' : 'Verified Master Artisan'}
                 </span>
               </div>
               <p className="text-[#8C7355] text-xs flex items-center gap-2 mt-0.5">
                 <span>{artisanProfile.craft}</span> ·{' '}
-                <span className="font-bold font-mono">{artisanProfile.experienceYears} Years Exp.</span> ·{' '}
+                <span className="font-bold font-mono">
+                  {artisanProfile.experienceYears} {language === 'hi' ? 'वर्ष का अनुभव' : 'Years Exp.'}
+                </span> ·{' '}
                 <span>{artisanProfile.location}</span>
               </p>
             </div>
@@ -114,13 +130,17 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
 
           <div className="flex flex-wrap items-center gap-4 text-xs">
             <div className="space-y-0.5">
-              <span className="text-[10px] text-[#8C7355] block">Direct UPI VPA ID</span>
+              <span className="text-[10px] text-[#8C7355] block">
+                {language === 'hi' ? 'प्रत्यक्ष UPI VPA ID' : 'Direct UPI VPA ID'}
+              </span>
               <span className="font-mono font-bold text-[#8B5E34] bg-white px-2.5 py-1 rounded-lg border border-[#E6D5C3] block">
                 {artisanProfile.upiId}
               </span>
             </div>
             <div className="space-y-0.5">
-              <span className="text-[10px] text-[#8C7355] block">GI Registry Tag</span>
+              <span className="text-[10px] text-[#8C7355] block">
+                {language === 'hi' ? 'भौगोलिक संकेतक (GI) टैग' : 'GI Registry Tag'}
+              </span>
               <span className="font-bold text-green-800 bg-green-50 px-2.5 py-1 rounded-lg border border-green-200 block">
                 ✓ GI-KUTCH-2026
               </span>
@@ -133,7 +153,8 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
       <div className="p-6 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E6D5C3] pb-3">
           <h3 className="text-base font-bold font-serif text-[#3E2723] flex items-center gap-2">
-            <Truck className="w-4 h-4 text-[#8B5E34]" /> Live Platform Order Fulfillment & Dispatch Status
+            <Truck className="w-4 h-4 text-[#8B5E34]" />{' '}
+            {language === 'hi' ? 'लाइव ऑर्डर पूर्ति एवं कूरियर प्रेषण स्थिति' : 'Live Platform Order Fulfillment & Dispatch Status'}
           </h3>
 
           {/* Status Filter Buttons */}
@@ -150,7 +171,15 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
                     : 'bg-[#FAF9F7] text-[#6D5843] hover:text-[#3E2723] border border-[#E6D5C3]'
                 }`}
               >
-                {filterKey === 'all' ? 'All Orders' : filterKey}
+                {filterKey === 'all'
+                  ? (language === 'hi' ? 'सभी ऑर्डर' : 'All Orders')
+                  : filterKey === 'Placed'
+                  ? (language === 'hi' ? 'दर्ज' : 'Placed')
+                  : filterKey === 'Dispatched'
+                  ? (language === 'hi' ? 'भेजा गया' : 'Dispatched')
+                  : filterKey === 'Transit'
+                  ? (language === 'hi' ? 'मार्ग में' : 'Transit')
+                  : (language === 'hi' ? 'डिलीवर किया गया' : 'Delivered')}
               </button>
             ))}
           </div>
@@ -160,12 +189,12 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
           <table className="w-full text-xs text-left">
             <thead>
               <tr className="border-b border-[#E6D5C3] text-[#8C7355] uppercase text-[10px]">
-                <th className="pb-3 font-bold">Order / Tracking</th>
-                <th className="pb-3 font-bold">Customer & Shipping Address</th>
-                <th className="pb-3 font-bold">Artisan</th>
-                <th className="pb-3 font-bold">Amount</th>
-                <th className="pb-3 font-bold">Payment & Settlement</th>
-                <th className="pb-3 font-bold">Courier & Status</th>
+                <th className="pb-3 font-bold">{language === 'hi' ? 'ऑर्डर / ट्रैकिंग ID' : 'Order / Tracking'}</th>
+                <th className="pb-3 font-bold">{language === 'hi' ? 'ग्राहक एवं पता' : 'Customer & Shipping Address'}</th>
+                <th className="pb-3 font-bold">{language === 'hi' ? 'कारीगर' : 'Artisan'}</th>
+                <th className="pb-3 font-bold">{language === 'hi' ? 'राशि' : 'Amount'}</th>
+                <th className="pb-3 font-bold">{language === 'hi' ? 'भुगतान विधि' : 'Payment & Settlement'}</th>
+                <th className="pb-3 font-bold">{language === 'hi' ? 'कूरियर एवं स्थिति' : 'Courier & Status'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E6D5C3]">
@@ -184,7 +213,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
                   <td className="py-3 font-bold text-[#8B5E34]">₹{o.totalAmount.toLocaleString('en-IN')}</td>
                   <td className="py-3">
                     <span className="text-[10px] font-bold bg-[#F5F1EE] text-[#8B5E34] border border-[#E6D5C3] px-2 py-0.5 rounded-md">
-                      {o.paymentMethod} (Direct Flow)
+                      {o.paymentMethod} ({language === 'hi' ? 'प्रत्यक्ष खाता' : 'Direct Flow'})
                     </span>
                   </td>
                   <td className="py-3">

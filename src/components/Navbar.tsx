@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Role, AppNotification } from '../types';
 import { KalaKritiLogo } from './KalaKritiLogo';
 import { useLanguage } from '../context/LanguageContext';
@@ -13,6 +13,9 @@ import {
   BookOpen,
   Languages,
   ShieldCheck,
+  RotateCcw,
+  Sparkles,
+  ChevronDown,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -26,6 +29,7 @@ interface NavbarProps {
   onOpenCart: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
+  onOpenPortalSelect: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -39,9 +43,30 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCart,
   searchQuery,
   onSearchChange,
+  onOpenPortalSelect,
 }) => {
-  const { language, setLanguage, toggleLanguage, t } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+
+  const getRoleLabel = (role: Role) => {
+    switch (role) {
+      case 'artisan':
+        return { name: t.roleArtisanTitle, icon: '🎨', color: 'bg-[#8B5E34] text-white' };
+      case 'customer':
+        return { name: t.roleCustomerTitle, icon: '🛍️', color: 'bg-[#9C5A28] text-white' };
+      case 'b2b':
+        return { name: t.roleB2BTitle, icon: '🏢', color: 'bg-[#4A6741] text-white' };
+      case 'admin':
+        return { name: t.roleAdminTitle, icon: '🛡️', color: 'bg-[#3E2723] text-white' };
+      case 'catalog':
+        return { name: t.roleCatalogTitle, icon: '📖', color: 'bg-[#8B5E34] text-white' };
+      default:
+        return { name: 'Customer', icon: '🛍️', color: 'bg-[#8B5E34] text-white' };
+    }
+  };
+
+  const currentRoleInfo = getRoleLabel(currentRole);
 
   return (
     <header className="sticky top-0 z-40 bg-[#FFFFFF]/95 backdrop-blur-md border-b border-[#E6D5C3] shadow-xs">
@@ -49,27 +74,47 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between h-20 gap-3">
           {/* Brand Logo */}
           <div
-            onClick={() => onNavigate('home')}
+            onClick={onOpenPortalSelect}
             className="cursor-pointer transition-transform hover:scale-[1.01] shrink-0"
+            title={language === 'hi' ? 'भूमिका चयन पर वापस जाएं' : 'Back to Workspace & Role Selection'}
           >
             <KalaKritiLogo size="md" showSubtitle={true} showTagline={false} />
           </div>
 
-          {/* Center Search Input */}
-          <div className="hidden lg:flex flex-1 max-w-md mx-2">
-            <div className="relative w-full">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                placeholder={t.searchPlaceholder}
-                className="w-full pl-10 pr-4 py-2 text-xs bg-[#FDFBF9] border border-[#E6D5C3] rounded-full focus:outline-hidden focus:ring-2 focus:ring-[#8B5E34] text-[#3E2723] shadow-2xs placeholder:text-[#A68B6D]"
-              />
-              <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-[#8C7355]" />
-            </div>
+          {/* Current Role Badge & Switch Role Button */}
+          <div className="hidden sm:flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onOpenPortalSelect}
+              className="flex items-center gap-2 px-3 py-1.5 bg-[#FAF6F0] hover:bg-[#F2EAE0] border border-[#E6D5C3] rounded-2xl text-xs font-semibold text-[#3E2723] transition-all shadow-2xs group"
+              title={language === 'hi' ? 'कार्यक्षेत्र बदलें' : 'Change Job / Workspace'}
+            >
+              <span className="text-base">{currentRoleInfo.icon}</span>
+              <span className="text-[#8C7355] font-normal">{t.workingAs}:</span>
+              <span className="font-bold text-[#3E2723]">{currentRoleInfo.name}</span>
+              <span className="ml-1 text-[10px] bg-[#8B5E34] text-white px-2 py-0.5 rounded-full font-bold group-hover:bg-[#734B26]">
+                {t.switchRole} ⇄
+              </span>
+            </button>
           </div>
 
-          {/* Right Navigation & Role Actions */}
+          {/* Center Search Input (Shown in customer/catalog view) */}
+          {(currentRole === 'customer' || currentRole === 'catalog') && (
+            <div className="hidden lg:flex flex-1 max-w-sm mx-2">
+              <div className="relative w-full">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder={t.searchPlaceholder}
+                  className="w-full pl-9 pr-3 py-1.5 text-xs bg-[#FDFBF9] border border-[#E6D5C3] rounded-full focus:outline-hidden focus:ring-2 focus:ring-[#8B5E34] text-[#3E2723] shadow-2xs placeholder:text-[#A68B6D]"
+                />
+                <Search className="absolute left-3 top-2 w-3.5 h-3.5 text-[#8C7355]" />
+              </div>
+            </div>
+          )}
+
+          {/* Right Navigation & Actions */}
           <div className="flex items-center gap-2">
             {/* Language Switcher Pill */}
             <div className="flex items-center bg-[#FAF9F7] border border-[#E6D5C3] rounded-2xl p-0.5 shadow-2xs">
@@ -99,85 +144,72 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
-            {/* Quick Role Switcher Pill Bar */}
-            <div className="hidden md:flex items-center p-1 bg-[#F5F1EE] rounded-2xl border border-[#E6D5C3] text-xs font-semibold">
+            {/* Role-Specific Actions */}
+            {currentRole === 'customer' && (
+              <>
+                {/* Customer Tracking Shortcut */}
+                <button
+                  type="button"
+                  onClick={() => onNavigate('my-orders')}
+                  className="p-2 bg-white hover:bg-[#FAF9F7] border border-[#E6D5C3] rounded-xl text-[#3E2723] hover:text-[#8B5E34] transition-colors relative shadow-2xs"
+                  title={t.navTracking}
+                >
+                  <Truck className="w-4 h-4" />
+                </button>
+
+                {/* Cart Button */}
+                <button
+                  type="button"
+                  onClick={onOpenCart}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-[#8B5E34] hover:bg-[#734B26] text-white rounded-xl text-xs font-bold shadow-xs transition-transform active:scale-95"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t.navCart}</span>
+                  <span className="bg-[#3E2723] text-white px-1.5 py-0.2 rounded-full text-[10px]">
+                    {cartCount}
+                  </span>
+                </button>
+              </>
+            )}
+
+            {currentRole === 'artisan' && (
               <button
                 type="button"
-                onClick={() => onRoleChange('customer')}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl transition-all ${
-                  currentRole === 'customer'
-                    ? 'bg-[#8B5E34] text-white shadow-xs'
-                    : 'text-[#6D5843] hover:text-[#3E2723] hover:bg-[#FAF9F7]'
-                }`}
+                onClick={() => onNavigate('artisan-dashboard')}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-[#8B5E34] text-white rounded-xl text-xs font-bold shadow-xs"
               >
-                <Store className="w-3.5 h-3.5" /> {t.navCustomerShop}
+                <User className="w-4 h-4" />
+                <span>{t.navArtisanPortal}</span>
               </button>
+            )}
 
+            {currentRole === 'b2b' && (
               <button
                 type="button"
-                onClick={() => onRoleChange('artisan')}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl transition-all ${
-                  currentRole === 'artisan'
-                    ? 'bg-[#8B5E34] text-white shadow-xs'
-                    : 'text-[#6D5843] hover:text-[#3E2723] hover:bg-[#FAF9F7]'
-                }`}
+                onClick={() => onNavigate('b2b')}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-[#4A6741] text-white rounded-xl text-xs font-bold shadow-xs"
               >
-                <User className="w-3.5 h-3.5" /> {t.navArtisanPortal}
+                <Building2 className="w-4 h-4" />
+                <span>{t.navB2BBulk}</span>
               </button>
+            )}
 
+            {currentRole === 'admin' && (
               <button
                 type="button"
-                onClick={() => onRoleChange('b2b')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl transition-all ${
-                  currentRole === 'b2b'
-                    ? 'bg-[#8B5E34] text-white shadow-xs'
-                    : 'text-[#6D5843] hover:text-[#3E2723] hover:bg-[#FAF9F7]'
-                }`}
+                onClick={() => onNavigate('admin')}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-[#3E2723] text-white rounded-xl text-xs font-bold shadow-xs"
               >
-                <Building2 className="w-3.5 h-3.5" /> {t.navB2BBulk}
+                <ShieldCheck className="w-4 h-4 text-[#E6D5C3]" />
+                <span>{t.roleAdminTitle}</span>
               </button>
-
-              <button
-                type="button"
-                onClick={() => onRoleChange('catalog')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl transition-all ${
-                  currentRole === 'catalog'
-                    ? 'bg-[#8B5E34] text-white shadow-xs'
-                    : 'text-[#6D5843] hover:text-[#3E2723] hover:bg-[#FAF9F7]'
-                }`}
-              >
-                <BookOpen className="w-3.5 h-3.5" /> {t.navCatalog}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onRoleChange('admin')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl transition-all ${
-                  currentRole === 'admin'
-                    ? 'bg-[#3E2723] text-white shadow-xs'
-                    : 'text-[#6D5843] hover:text-[#3E2723] hover:bg-[#FAF9F7]'
-                }`}
-                title="Marketplace Admin Oversight"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" /> Admin
-              </button>
-            </div>
-
-            {/* Customer Tracking Shortcut */}
-            <button
-              type="button"
-              onClick={() => onNavigate('my-orders')}
-              className="p-2.5 bg-white hover:bg-[#FAF9F7] border border-[#E6D5C3] rounded-xl text-[#3E2723] hover:text-[#8B5E34] transition-colors relative shadow-2xs"
-              title={t.navTracking}
-            >
-              <Truck className="w-4 h-4" />
-            </button>
+            )}
 
             {/* Notification Bell */}
             <button
               type="button"
               onClick={onOpenNotifications}
-              className="p-2.5 bg-white hover:bg-[#FAF9F7] border border-[#E6D5C3] rounded-xl text-[#3E2723] hover:text-[#8B5E34] transition-colors relative shadow-2xs"
+              className="p-2 bg-white hover:bg-[#FAF9F7] border border-[#E6D5C3] rounded-xl text-[#3E2723] hover:text-[#8B5E34] transition-colors relative shadow-2xs"
               title={t.navNotifications}
             >
               <Bell className="w-4 h-4" />
@@ -187,79 +219,70 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               )}
             </button>
-
-            {/* Cart Button */}
-            <button
-              type="button"
-              onClick={onOpenCart}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-[#8B5E34] hover:bg-[#734B26] text-white rounded-xl text-xs font-bold shadow-xs transition-transform active:scale-95"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              <span className="hidden sm:inline">{t.navCart}</span>
-              <span className="bg-[#3E2723] text-white px-1.5 py-0.2 rounded-full text-[10px]">
-                {cartCount}
-              </span>
-            </button>
           </div>
         </div>
 
         {/* Mobile Sub Navigation Bar */}
-        <div className="flex md:hidden items-center justify-between py-2 border-t border-[#E6D5C3] text-xs overflow-x-auto gap-2 no-scrollbar">
+        <div className="flex sm:hidden items-center justify-between py-2 border-t border-[#E6D5C3] text-xs overflow-x-auto gap-2 no-scrollbar">
           <button
             type="button"
-            onClick={() => onRoleChange('customer')}
-            className={`px-3 py-1 rounded-lg shrink-0 font-semibold ${
-              currentRole === 'customer' ? 'bg-[#8B5E34] text-white' : 'text-[#6D5843]'
-            }`}
+            onClick={onOpenPortalSelect}
+            className="flex items-center gap-1 px-2.5 py-1 bg-[#8B5E34] text-white rounded-lg font-bold shrink-0 shadow-2xs"
           >
-            🛍️ {t.navCustomerShop}
+            <span>{currentRoleInfo.icon}</span>
+            <span>{t.switchRole} ⇄</span>
           </button>
-          <button
-            type="button"
-            onClick={() => onRoleChange('artisan')}
-            className={`px-3 py-1 rounded-lg shrink-0 font-semibold ${
-              currentRole === 'artisan' ? 'bg-[#8B5E34] text-white' : 'text-[#6D5843]'
-            }`}
-          >
-            🧑‍🎨 {t.navArtisanPortal}
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigate('my-orders')}
-            className="px-3 py-1 rounded-lg shrink-0 font-semibold text-[#6D5843] bg-white border border-[#E6D5C3]"
-          >
-            🚚 {t.navTracking}
-          </button>
-          <button
-            type="button"
-            onClick={() => onRoleChange('b2b')}
-            className={`px-3 py-1 rounded-lg shrink-0 font-semibold ${
-              currentRole === 'b2b' ? 'bg-[#8B5E34] text-white' : 'text-[#6D5843]'
-            }`}
-          >
-            🏢 {t.navB2BBulk}
-          </button>
-          <button
-            type="button"
-            onClick={() => onRoleChange('catalog')}
-            className={`px-3 py-1 rounded-lg shrink-0 font-semibold ${
-              currentRole === 'catalog' ? 'bg-[#8B5E34] text-white' : 'text-[#6D5843]'
-            }`}
-          >
-            📖 {t.navCatalog}
-          </button>
-          <button
-            type="button"
-            onClick={() => onRoleChange('admin')}
-            className={`px-3 py-1 rounded-lg shrink-0 font-semibold ${
-              currentRole === 'admin' ? 'bg-[#3E2723] text-white' : 'text-[#6D5843]'
-            }`}
-          >
-            🛡️ Admin
-          </button>
+
+          {currentRole === 'customer' && (
+            <>
+              <button
+                type="button"
+                onClick={() => onNavigate('home')}
+                className={`px-3 py-1 rounded-lg shrink-0 font-semibold ${
+                  activeView === 'home' ? 'bg-[#FAF9F7] text-[#8B5E34] border border-[#E6D5C3]' : 'text-[#6D5843]'
+                }`}
+              >
+                🛍️ {t.navCustomerShop}
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate('my-orders')}
+                className={`px-3 py-1 rounded-lg shrink-0 font-semibold ${
+                  activeView === 'my-orders' ? 'bg-[#FAF9F7] text-[#8B5E34] border border-[#E6D5C3]' : 'text-[#6D5843]'
+                }`}
+              >
+                🚚 {t.navTracking}
+              </button>
+            </>
+          )}
+
+          {currentRole === 'artisan' && (
+            <span className="text-xs font-bold text-[#8B5E34] px-2 py-1 bg-[#FAF6F0] rounded-lg">
+              🎨 {t.roleArtisanTitle} Dashboard
+            </span>
+          )}
+
+          {currentRole === 'b2b' && (
+            <span className="text-xs font-bold text-[#4A6741] px-2 py-1 bg-[#FAF6F0] rounded-lg">
+              🏢 {t.roleB2BTitle} Wholesale
+            </span>
+          )}
+
+          {currentRole === 'admin' && (
+            <span className="text-xs font-bold text-[#3E2723] px-2 py-1 bg-[#FAF6F0] rounded-lg">
+              🛡️ {t.roleAdminTitle} Oversight
+            </span>
+          )}
+
+          {currentRole === 'catalog' && (
+            <span className="text-xs font-bold text-[#8B5E34] px-2 py-1 bg-[#FAF6F0] rounded-lg">
+              📖 {t.roleCatalogTitle} Lookbook
+            </span>
+          )}
         </div>
       </div>
     </header>
   );
 };
+
 

@@ -214,6 +214,31 @@ export interface Translations {
   aiInputPlaceholder: string;
   aiThinking: string;
   aiQuickPrompts: string[];
+
+  // Portal & Role Selector Landing
+  portalSelectTitle: string;
+  portalSelectSubtitle: string;
+  roleArtisanTitle: string;
+  roleArtisanDesc: string;
+  roleArtisanAction: string;
+  roleCustomerTitle: string;
+  roleCustomerDesc: string;
+  roleCustomerAction: string;
+  roleB2BTitle: string;
+  roleB2BDesc: string;
+  roleB2BAction: string;
+  roleAdminTitle: string;
+  roleAdminDesc: string;
+  roleAdminAction: string;
+  roleCatalogTitle: string;
+  roleCatalogDesc: string;
+  roleCatalogAction: string;
+  pillBrowseCatalog: string;
+  pillFindArtisans: string;
+  pillBecomeArtisan: string;
+  searchBtn: string;
+  switchRole: string;
+  workingAs: string;
 }
 
 export const TRANSLATIONS: Record<Language, Translations> = {
@@ -421,6 +446,31 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       'Tell me the history of Dhokra brass casting',
       'How does KalaKriti ensure 100% goes to artisans?',
     ],
+
+    // Portal & Role Selector Landing
+    portalSelectTitle: 'Select Your Workspace & Role',
+    portalSelectSubtitle: 'Choose how you want to experience KalaKriti — as an artisan, customer, wholesale buyer, curator, or admin.',
+    roleArtisanTitle: 'Artisan',
+    roleArtisanDesc: 'Create, manage & sell your handmade products',
+    roleArtisanAction: 'Continue as Artisan →',
+    roleCustomerTitle: 'Customer',
+    roleCustomerDesc: 'Discover & buy authentic handmade products',
+    roleCustomerAction: 'Shop Products →',
+    roleB2BTitle: 'B2B Buyer',
+    roleB2BDesc: 'Find artisans and source products in bulk',
+    roleB2BAction: 'Find Artisans →',
+    roleAdminTitle: 'Admin',
+    roleAdminDesc: 'Manage users, products, orders & platform',
+    roleAdminAction: 'Admin Login →',
+    roleCatalogTitle: 'Web Catalog',
+    roleCatalogDesc: 'Explore handmade products and discover artisans',
+    roleCatalogAction: 'Explore Catalog →',
+    pillBrowseCatalog: 'Browse Catalog',
+    pillFindArtisans: 'Find Artisans',
+    pillBecomeArtisan: 'Become an Artisan',
+    searchBtn: 'Search',
+    switchRole: 'Switch Role',
+    workingAs: 'Working as',
   },
   hi: {
     brandName: 'कलाकृति',
@@ -626,5 +676,30 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       'ढोकरा पीतल शिल्प का प्राचीन इतिहास क्या है?',
       'कलाकृति यह कैसे सुनिश्चित करती है कि 100% पैसा कारीगर को मिले?',
     ],
+
+    // Portal & Role Selector Landing
+    portalSelectTitle: 'अपना कार्यक्षेत्र और भूमिका चुनें',
+    portalSelectSubtitle: 'कलाकृति का अनुभव कैसे करना चाहते हैं चुनें — कारीगर, ग्राहक, थोक खरीदार, क्यूरेटर या व्यवस्थापक।',
+    roleArtisanTitle: 'कारीगर (Artisan)',
+    roleArtisanDesc: 'अपने हस्तनिर्मित उत्पादों को बनाएं, प्रबंधित करें और सीधे बेचें',
+    roleArtisanAction: 'कारीगर के रूप में जारी रखें →',
+    roleCustomerTitle: 'ग्राहक (Customer)',
+    roleCustomerDesc: 'प्रामाणिक हस्तनिर्मित उत्पाद खोजें और 100% सीधे खरीदें',
+    roleCustomerAction: 'उत्पाद खरीदें →',
+    roleB2BTitle: 'थोक खरीदार (B2B Buyer)',
+    roleB2BDesc: 'कारीगरों को खोजें और थोक ऑर्डर के लिए संपर्क करें',
+    roleB2BAction: 'कारीगर खोजें →',
+    roleAdminTitle: 'प्रशासक (Admin)',
+    roleAdminDesc: 'उपयोगकर्ताओं, उत्पादों, ऑर्डर और प्लेटफ़ॉर्म का प्रबंधन करें',
+    roleAdminAction: 'एडमिन लॉगिन →',
+    roleCatalogTitle: 'वेब कैटलॉग (Web Catalog)',
+    roleCatalogDesc: 'हस्तनिर्मित शिल्प देखें और मास्टर कारीगरों की खोज करें',
+    roleCatalogAction: 'कैटलॉग देखें →',
+    pillBrowseCatalog: 'कैटलॉग देखें',
+    pillFindArtisans: 'कारीगर खोजें',
+    pillBecomeArtisan: 'कारीगर बनें',
+    searchBtn: 'खोजें',
+    switchRole: 'भूमिका बदलें',
+    workingAs: 'वर्तमान भूमिका',
   },
 };

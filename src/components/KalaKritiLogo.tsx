@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface LogoProps {
   className?: string;
@@ -22,7 +23,7 @@ export const KalaKritiEmblem: React.FC<{ sizeClass?: string; className?: string 
       xmlns="http://www.w3.org/2000/svg"
     >
       <g id="KalaKritiEmblem" transform="translate(0, -10)">
-        {/* Top Terracotta Petals */}
+        {/* Top Terracotta / Orange Petals */}
         <path
           d="M 215,185 C 195,140 210,80 250,45 C 235,90 230,140 215,185 Z"
           fill="#C85328"
@@ -76,7 +77,7 @@ export const KalaKritiEmblem: React.FC<{ sizeClass?: string; className?: string 
           strokeWidth="2.5"
         />
 
-        {/* Tree of Life in Center */}
+        {/* Golden Tree of Life in Center */}
         <g id="TreeOfLife">
           {/* Main Trunk */}
           <path
@@ -133,12 +134,15 @@ export const KalaKritiEmblem: React.FC<{ sizeClass?: string; className?: string 
         </g>
 
         {/* Decorative Accent Dots */}
+        {/* Crown Apex */}
         <circle cx="250" cy="22" r="7" fill="#1B4332" />
         <circle cx="250" cy="42" r="4.5" fill="#D8962B" />
 
+        {/* Left Flank Dots */}
         <circle cx="106" cy="120" r="5.5" fill="#D8962B" />
         <circle cx="114" cy="140" r="5" fill="#1B4332" />
 
+        {/* Right Flank Dots */}
         <circle cx="394" cy="120" r="5.5" fill="#C85328" />
         <circle cx="386" cy="140" r="5" fill="#1B4332" />
       </g>
@@ -155,20 +159,22 @@ export const KalaKritiLogo: React.FC<LogoProps> = ({
   iconOnly = false,
   stacked = false,
 }) => {
+  const { language, t } = useLanguage();
+
   const iconSizes = {
-    xs: 'w-6 h-6',
-    sm: 'w-9 h-9',
-    md: 'w-12 h-12',
-    lg: 'w-16 h-16',
-    hero: 'w-24 h-24',
+    xs: 'w-7 h-7',
+    sm: 'w-10 h-10',
+    md: 'w-14 h-14',
+    lg: 'w-20 h-20',
+    hero: 'w-32 h-32 sm:w-36 sm:h-36',
   };
 
   const titleSizes = {
     xs: 'text-sm font-bold tracking-wider',
     sm: 'text-base font-bold tracking-wider',
-    md: 'text-xl font-bold tracking-widest',
-    lg: 'text-2xl font-bold tracking-widest',
-    hero: 'text-4xl sm:text-5xl font-bold tracking-[0.2em]',
+    md: 'text-xl sm:text-2xl font-bold tracking-widest',
+    lg: 'text-3xl sm:text-4xl font-bold tracking-widest',
+    hero: 'text-4xl sm:text-5xl md:text-6xl font-bold tracking-[0.25em]',
   };
 
   if (iconOnly) {
@@ -178,30 +184,35 @@ export const KalaKritiLogo: React.FC<LogoProps> = ({
   if (stacked) {
     return (
       <div className={`flex flex-col items-center text-center select-none ${className}`}>
-        <KalaKritiEmblem sizeClass={iconSizes[size]} className="mb-2" />
+        <KalaKritiEmblem sizeClass={iconSizes[size]} className="mb-3 hover:scale-105 transition-transform duration-300" />
         <h1
           className={`font-serif font-bold uppercase ${titleSizes[size]} ${
             textColor || 'text-[#2B1D16]'
           }`}
         >
-          KALAKRITI
+          {language === 'hi' ? 'KALAKRITI' : 'KALAKRITI'}
         </h1>
         {showSubtitle && (
-          <p className="text-xs sm:text-sm font-medium text-[#3E2723] mt-1">
-            Empowering Artisans. Enriching Lives.
+          <p className="text-sm sm:text-base font-medium text-[#2B1D16] mt-1.5 tracking-tight">
+            {t.brandSubtitle}
           </p>
         )}
         {showTagline && (
-          <>
-            <div className="flex items-center justify-center gap-2 my-2 w-48 mx-auto">
-              <div className="h-px bg-[#D8962B] flex-1" />
-              <div className="w-2.5 h-2.5 rotate-45 border border-[#D8962B] bg-[#D8962B]/20" />
-              <div className="h-px bg-[#D8962B] flex-1" />
+          <div className="flex flex-col items-center mt-2.5">
+            {/* Golden Divider Line with Center Lotus */}
+            <div className="flex items-center justify-center gap-3 my-2 w-64 sm:w-80 max-w-full mx-auto">
+              <div className="h-[1.5px] bg-[#D8962B] flex-1 rounded-full" />
+              <svg viewBox="0 0 32 18" className="w-6 h-3.5 text-[#D8962B] fill-current shrink-0">
+                <path d="M 16,0 C 18,5 19,11 16,18 C 13,11 14,5 16,0 Z" />
+                <path d="M 12,5 C 6,8 5,14 10,17 C 14,15 14,10 12,5 Z" />
+                <path d="M 20,5 C 26,8 27,14 22,17 C 18,15 18,10 20,5 Z" />
+              </svg>
+              <div className="h-[1.5px] bg-[#D8962B] flex-1 rounded-full" />
             </div>
-            <p className="text-xs italic font-serif text-[#8A4B2D]">
-              — From Handmade Craft to Digital Market. —
+            <p className="text-xs sm:text-sm italic font-serif text-[#8A4B2D] tracking-wide">
+              {t.brandTagline}
             </p>
-          </>
+          </div>
         )}
       </div>
     );
@@ -219,15 +230,15 @@ export const KalaKritiLogo: React.FC<LogoProps> = ({
               textColor || 'text-[#2B1D16]'
             }`}
           >
-            KALAKRITI
+            {language === 'hi' ? 'KALAKRITI' : 'KALAKRITI'}
           </span>
         </div>
         {showSubtitle && (
-          <div className="flex flex-col text-[10px] sm:text-[11px] leading-tight text-[#3E2723] font-medium tracking-tight mt-1">
-            <span className="font-semibold text-[#8B5E34]">Empowering Artisans. Enriching Lives.</span>
+          <div className="flex flex-col text-[10px] sm:text-[11px] leading-tight text-[#2B1D16] font-medium tracking-tight mt-1">
+            <span className="font-semibold text-[#8B5E34]">{t.brandSubtitle}</span>
             {showTagline && (
-              <span className="text-[#8A4B2D] text-[9px] sm:text-[10px] italic font-serif">
-                — From Handmade Craft to Digital Market. —
+              <span className="text-[#8A4B2D] text-[9px] sm:text-[10px] italic font-serif mt-0.5">
+                {t.brandTagline}
               </span>
             )}
           </div>
@@ -236,4 +247,5 @@ export const KalaKritiLogo: React.FC<LogoProps> = ({
     </div>
   );
 };
+
 
