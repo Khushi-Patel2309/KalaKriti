@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Product, ProductCategory, ArtisanProfile } from '../types';
 import { PhotoEnhancerStudio } from './PhotoEnhancerStudio';
 import { VoiceRecorderModal } from './VoiceRecorderModal';
-import { Camera, Mic, Sparkles, Check, ArrowRight, ArrowLeft, RefreshCw, IndianRupee, Tag, AlertCircle, Upload, Eye } from 'lucide-react';
+import { Camera, Mic, Sparkles, Check, ArrowRight, ArrowLeft, RefreshCw, IndianRupee, Tag, AlertCircle, Upload, Eye, Zap } from 'lucide-react';
 
 interface AddProductWizardProps {
   onProductPublished: (product: Product) => void;
   onCancel: () => void;
   artisanProfile: ArtisanProfile;
   initialProductToEdit?: Product | null;
+  onSwitchTo30Seconds?: () => void;
 }
 
 const CATEGORIES: ProductCategory[] = [
@@ -26,6 +27,7 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
   onCancel,
   artisanProfile,
   initialProductToEdit,
+  onSwitchTo30Seconds,
 }) => {
   const [step, setStep] = useState<number>(1);
   const [originalPhoto, setOriginalPhoto] = useState<string>(initialProductToEdit?.imageOriginal || initialProductToEdit?.imageEnhanced || '');
@@ -249,6 +251,34 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
       {/* STEP 1: Upload / Take Real Photo */}
       {step === 1 && (
         <div className="p-8 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs space-y-6 text-center">
+          {/* Optional Prominent "Product Ready in 30 Seconds" Fast Mode Switcher */}
+          {onSwitchTo30Seconds && (
+            <div className="p-4 bg-gradient-to-r from-[#244238] via-[#1D362E] to-[#142620] text-white rounded-2xl flex flex-wrap items-center justify-between gap-3 text-left shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#D8962B] text-[#244238] flex items-center justify-center font-bold shrink-0">
+                  <Zap className="w-5 h-5 fill-current" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-white block">
+                    ✨ Prefer zero typing? Try "Product Ready in 30 Seconds"
+                  </span>
+                  <span className="text-[11px] text-[#C2D8D0] block">
+                    Upload 1 photo, AI enhances lighting and completes all listing fields automatically in 30s!
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={onSwitchTo30Seconds}
+                className="px-4 py-2 bg-[#D8962B] hover:bg-[#C28524] text-[#244238] text-xs font-bold rounded-xl shadow-xs transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 cursor-pointer shrink-0"
+              >
+                <span>Switch to 30s Fast Mode</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
           <div className="w-16 h-16 rounded-3xl bg-[#F5F1EE] text-[#8B5E34] border border-[#E6D5C3] flex items-center justify-center mx-auto shadow-xs">
             <Camera className="w-8 h-8" />
           </div>

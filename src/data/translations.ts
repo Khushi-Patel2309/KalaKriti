@@ -239,6 +239,9 @@ export interface Translations {
   searchBtn: string;
   switchRole: string;
   workingAs: string;
+  ready30sTitle: string;
+  ready30sSubtitle: string;
+  ready30sAction: string;
 }
 
 export const TRANSLATIONS: Record<Language, Translations> = {
@@ -471,6 +474,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     searchBtn: 'Search',
     switchRole: 'Switch Role',
     workingAs: 'Working as',
+    ready30sTitle: 'Product Ready in 30 Seconds',
+    ready30sSubtitle: 'Zero typing required. Upload 1 photo and AI handles studio enhancement and complete listing generation.',
+    ready30sAction: '✨ Ready in 30s',
   },
   hi: {
     brandName: 'कलाकृति',
@@ -701,5 +707,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     searchBtn: 'खोजें',
     switchRole: 'भूमिका बदलें',
     workingAs: 'वर्तमान भूमिका',
+    ready30sTitle: '३० सेकंड में उत्पाद तैयार',
+    ready30sSubtitle: 'कारीगरों के लिए शून्य टाइपिंग: बस १ फोटो अपलोड करें और AI पूरी लिस्टिंग तैयार कर देगा।',
+    ready30sAction: '✨ ३० सेकंड में तैयार',
   },
 };
