@@ -9,6 +9,7 @@ interface ProductCardProps {
   onAddToCart?: (e: React.MouseEvent, product: Product) => void;
   showArtisan?: boolean;
   showStatus?: boolean;
+  cartQty?: number;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -17,6 +18,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onAddToCart,
   showArtisan = true,
   showStatus = false,
+  cartQty = 0,
 }) => {
   const { language, t } = useLanguage();
 
@@ -100,10 +102,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 e.stopPropagation();
                 onAddToCart(e, product);
               }}
-              className="p-2 text-[#3E2723] hover:text-white bg-[#F5F1EE] hover:bg-[#8B5E34] border border-[#E6D5C3] rounded-xl shadow-2xs transition-all"
-              title={t.addToCart}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs ${
+                cartQty > 0
+                  ? 'bg-[#8B5E34] text-white hover:bg-[#734B26] border border-[#8B5E34]'
+                  : 'text-[#3E2723] hover:text-white bg-[#F5F1EE] hover:bg-[#8B5E34] border border-[#E6D5C3]'
+              }`}
+              title={cartQty > 0 ? `${cartQty} in Cart (Click to add more & view bag)` : t.addToCart}
             >
-              <ShoppingBag className="w-4 h-4" />
+              <ShoppingBag className="w-3.5 h-3.5" />
+              {cartQty > 0 ? (
+                <span className="font-sans font-bold">
+                  {cartQty} {language === 'hi' ? 'कार्ट में' : 'in Cart'}
+                </span>
+              ) : (
+                <span className="text-[11px] hidden sm:inline">{t.addToCart}</span>
+              )}
             </button>
           )}
         </div>

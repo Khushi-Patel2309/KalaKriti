@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product, Order, ArtisanProfile } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import {
@@ -15,17 +15,139 @@ import {
   Clock,
   Phone,
   FileCheck,
+  Lock,
+  KeyRound,
+  LogOut,
+  AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 
 interface AdminViewProps {
   products: Product[];
   orders: Order[];
   artisanProfile: ArtisanProfile;
+  onExitAdmin?: () => void;
 }
 
-export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanProfile }) => {
+export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanProfile, onExitAdmin }) => {
   const { language, t } = useLanguage();
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // Security Passkey State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return !!sessionStorage.getItem('kalakriti_admin_token');
+  });
+  const [passkeyInput, setPasskeyInput] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const handleVerifyPasskey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passkeyInput.trim()) {
+      setAuthError(language === 'hi' ? 'कृपया सीक्रेट पासकी दर्ज करें।' : 'Please enter the administrative passkey.');
+      return;
+    }
+
+    setIsVerifying(true);
+    setAuthError('');
+
+    try {
+      const res = await fetch('/api/admin/verify-passkey', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passkey: passkeyInput.trim() }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.token) {
+        sessionStorage.setItem('kalakriti_admin_token', data.token);
+        setIsAuthenticated(true);
+        setPasskeyInput('');
+      } else {
+        setAuthError(data.error || (language === 'hi' ? 'अमान्य पासकी। पहुंच अस्वीकृत।' : 'Invalid secret passkey. Access denied.'));
+      }
+    } catch (err) {
+      console.error('Admin auth error:', err);
+      setAuthError(language === 'hi' ? 'सत्यापन त्रुटि। पुनः प्रयास करें।' : 'Authentication failed. Please try again.');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleSignOut = () => {
+    sessionStorage.removeItem('kalakriti_admin_token');
+    setIsAuthenticated(false);
+    if (onExitAdmin) {
+      onExitAdmin();
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-md mx-auto my-12 p-8 bg-white border border-[#E6D5C3] rounded-3xl shadow-xl space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-16 h-16 bg-[#3E2723] text-[#E6D5C3] rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+          <Lock className="w-8 h-8" />
+        </div>
+
+        <div className="space-y-1.5">
+          <h2 className="text-xl font-bold font-serif text-[#3E2723]">
+            {t.adminPortalTitle}
+          </h2>
+          <p className="text-xs text-[#8C7355] leading-relaxed">
+            {t.adminLockedNotice}
+          </p>
+        </div>
+
+        {authError && (
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center gap-2 text-left">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{authError}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleVerifyPasskey} className="space-y-4 text-left">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[#3E2723] flex items-center gap-1.5">
+              <KeyRound className="w-3.5 h-3.5 text-[#8B5E34]" />
+              <span>{t.adminPasskeyLabel}</span>
+            </label>
+            <input
+              type="password"
+              value={passkeyInput}
+              onChange={(e) => setPasskeyInput(e.target.value)}
+              placeholder={t.adminPasskeyPlaceholder}
+              autoFocus
+              className="w-full p-3 text-xs bg-white border border-[#E6D5C3] rounded-xl focus:ring-2 focus:ring-[#8B5E34] text-[#3E2723]"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isVerifying}
+            className="w-full py-3 px-4 text-xs font-bold text-white bg-[#3E2723] hover:bg-[#2A1A17] rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+          >
+            {isVerifying ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>{language === 'hi' ? 'सत्यापित हो रहा है...' : 'Verifying Credentials...'}</span>
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="w-4 h-4 text-[#E6D5C3]" />
+                <span>{t.adminVerifyBtn}</span>
+              </>
+            )}
+          </button>
+        </form>
+
+        <p className="text-[11px] text-[#8C7355] italic">
+          {language === 'hi'
+            ? 'सुरक्षा नोट: बैकएंड टोकन प्रमाणीकरण सक्रिय है।'
+            : 'Security Note: Backend authentication enforced.'}
+        </p>
+      </div>
+    );
+  }
 
   const totalVolume = orders.reduce((sum, o) => sum + o.totalAmount, 0);
   const deliveredOrders = orders.filter((o) => o.status === 'Delivered').length;
@@ -38,11 +160,22 @@ export const AdminView: React.FC<AdminViewProps> = ({ products, orders, artisanP
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="p-6 sm:p-8 bg-[#3E2723] text-white rounded-3xl shadow-md space-y-4 border border-[#8B5E34]/30">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-[#E6D5C3]" />
-          <span className="text-xs uppercase tracking-wider font-bold text-[#E6D5C3]">
-            {language === 'hi' ? 'कलाकृति बाज़ार प्रशासन एवं विश्वास केंद्र' : 'KalaKriti Marketplace Administration & Trust Center'}
-          </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-[#E6D5C3]" />
+            <span className="text-xs uppercase tracking-wider font-bold text-[#E6D5C3]">
+              {language === 'hi' ? 'कलाकृति बाज़ार प्रशासन एवं विश्वास केंद्र' : 'KalaKriti Marketplace Administration & Trust Center'}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-[#E6D5C3] hover:text-white rounded-xl text-xs font-semibold transition-colors border border-white/15 cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>{t.adminSignOut}</span>
+          </button>
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold font-serif text-white">
           {language === 'hi' ? 'कारीगर क्लस्टर निगरानी एवं प्रत्यक्ष UPI सेटलमेंट लेजर' : 'Artisan Cluster Oversight & UPI Settlement Ledger'}

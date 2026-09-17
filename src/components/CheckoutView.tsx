@@ -32,13 +32,46 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   const [errorMsg, setErrorMsg] = useState('');
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const shippingFee = subtotal > 1999 ? 0 : 99; // Free shipping over 1999
+  const shippingFee = subtotal > 1999 || subtotal === 0 ? 0 : 99; // Free shipping over 1999
   const totalAmount = subtotal + shippingFee;
+
+  // Resolve direct artisan UPI recipient
+  const payeeUpi = items[0]?.product?.artisanName
+    ? `${items[0].product.artisanName.toLowerCase().replace(/[^a-z0-9]/g, '')}@upi`
+    : 'kalakriti.artisan@okhdfcbank';
+  const payeeName = items[0]?.product?.artisanName || 'KalaKriti Artisan Collective';
 
   // Generate an immediate simulated order ID
   const tempOrderId = 'KK' + Math.floor(Math.random() * 900000 + 100000);
 
+  if (items.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto p-12 text-center bg-white border border-[#E6D5C3] rounded-3xl space-y-4 shadow-xs">
+        <span className="text-4xl">🛍️</span>
+        <h3 className="text-lg font-bold font-serif text-[#3E2723]">
+          {language === 'hi' ? 'आपकी टोकरी खाली है' : 'Your Shopping Bag is Empty'}
+        </h3>
+        <p className="text-xs text-[#8C7355]">
+          {language === 'hi'
+            ? 'कृपया चेकआउट करने से पहले कारीगर बाज़ार से उत्पाद जोड़ें।'
+            : 'Please add handcrafted items from the artisan marketplace before proceeding to checkout.'}
+        </p>
+        <button
+          type="button"
+          onClick={onBackToCart}
+          className="px-5 py-2.5 bg-[#8B5E34] hover:bg-[#734B26] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+        >
+          {language === 'hi' ? 'कारीगर बाज़ार देखें' : 'Browse Artisan Marketplace'}
+        </button>
+      </div>
+    );
+  }
+
   const handleInitiatePayment = () => {
+    if (items.length === 0) {
+      setErrorMsg('Cannot checkout with an empty bag.');
+      return;
+    }
     if (
       !shipping.fullName ||
       !shipping.phone ||
@@ -430,6 +463,8 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
         isOpen={isUpiModalOpen}
         onClose={() => setIsUpiModalOpen(false)}
         amount={totalAmount}
+        payeeUpiId={payeeUpi}
+        payeeName={payeeName}
         orderId={tempOrderId}
         onPaymentSuccess={(utr) => finalizeOrder(utr)}
       />

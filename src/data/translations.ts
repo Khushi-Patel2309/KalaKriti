@@ -242,6 +242,53 @@ export interface Translations {
   ready30sTitle: string;
   ready30sSubtitle: string;
   ready30sAction: string;
+
+  // Customer Customization
+  requestCustomization: string;
+  customizationModalTitle: string;
+  customizationModalSubtitle: string;
+  customColorLabel: string;
+  customColorPlaceholder: string;
+  customPatternLabel: string;
+  customPatternPlaceholder: string;
+  customSizeLabel: string;
+  customSizePlaceholder: string;
+  customMessageLabel: string;
+  customMessagePlaceholder: string;
+  customContactName: string;
+  customContactPhone: string;
+  customContactEmail: string;
+  submitCustomizationBtn: string;
+  customizationSubmittedToast: string;
+  customizationRequestsTab: string;
+  noCustomizationRequests: string;
+  customizationStatusPending: string;
+  customizationStatusAccepted: string;
+  customizationStatusDeclined: string;
+  acceptCustomizationBtn: string;
+  declineCustomizationBtn: string;
+  artisanEstimateDaysLabel: string;
+  artisanEstimatePriceLabel: string;
+  artisanNotePlaceholder: string;
+  declineReasonPlaceholder: string;
+  myCustomizationsTitle: string;
+  myCustomizationsSub: string;
+
+  // Multilingual Voice Input
+  voiceSpokenLang: string;
+  voiceOutputLang: string;
+  voiceTranslateAction: string;
+  voiceTranslating: string;
+  voiceOriginalSpoken: string;
+  voiceTranslatedOutput: string;
+
+  // Admin Protection
+  adminPortalTitle: string;
+  adminPasskeyLabel: string;
+  adminPasskeyPlaceholder: string;
+  adminVerifyBtn: string;
+  adminLockedNotice: string;
+  adminSignOut: string;
 }
 
 export const TRANSLATIONS: Record<Language, Translations> = {
@@ -477,6 +524,53 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     ready30sTitle: 'Product Ready in 30 Seconds',
     ready30sSubtitle: 'Zero typing required. Upload 1 photo and AI handles studio enhancement and complete listing generation.',
     ready30sAction: '✨ Ready in 30s',
+
+    // Customer Customization
+    requestCustomization: 'Request Customization',
+    customizationModalTitle: 'Request Custom Handcraft',
+    customizationModalSubtitle: 'Specify custom colors, motifs, dimensions, or special requests directly to the artisan.',
+    customColorLabel: 'Preferred Color / Dye Shade',
+    customColorPlaceholder: 'e.g. Royal Indigo, Terracotta Rust, Deep Ochre, Emerald Green...',
+    customPatternLabel: 'Pattern / Motif Preference',
+    customPatternPlaceholder: 'e.g. Geometric Ajrakh, Traditional Peacock, Floral Jaal, Temple Border...',
+    customSizeLabel: 'Custom Size / Dimensions',
+    customSizePlaceholder: 'e.g. 2.5m x 1m, Double bed size, Custom height 14 inches...',
+    customMessageLabel: 'Special Instructions / Notes for the Artisan',
+    customMessagePlaceholder: 'Describe special occasions, preferred finishes, or heirloom expectations...',
+    customContactName: 'Your Full Name',
+    customContactPhone: 'Contact Number (WhatsApp / Phone)',
+    customContactEmail: 'Email Address (optional)',
+    submitCustomizationBtn: 'Send Customization Request to Artisan',
+    customizationSubmittedToast: 'Customization request sent directly to the master artisan! They will review it promptly.',
+    customizationRequestsTab: 'Customization Inquiries',
+    noCustomizationRequests: 'No customization requests received yet.',
+    customizationStatusPending: 'Pending Review',
+    customizationStatusAccepted: 'Accepted by Artisan',
+    customizationStatusDeclined: 'Declined',
+    acceptCustomizationBtn: 'Accept Request',
+    declineCustomizationBtn: 'Decline Request',
+    artisanEstimateDaysLabel: 'Estimated Crafting Days',
+    artisanEstimatePriceLabel: 'Estimated Custom Price (₹)',
+    artisanNotePlaceholder: 'Add a warm message to the customer about weaving or crafting details...',
+    declineReasonPlaceholder: 'Polite reason for declining (e.g. raw material out of season, loom size limits)...',
+    myCustomizationsTitle: 'My Custom Craft Inquiries',
+    myCustomizationsSub: 'Track direct customization requests sent to master artisans',
+
+    // Multilingual Voice Input
+    voiceSpokenLang: 'Spoken Language',
+    voiceOutputLang: 'Listing Output Language',
+    voiceTranslateAction: 'Translate to Output Language',
+    voiceTranslating: 'Translating voice...',
+    voiceOriginalSpoken: 'Original Spoken Words',
+    voiceTranslatedOutput: 'Translated Listing Text',
+
+    // Admin Protection
+    adminPortalTitle: 'KalaKriti Administrative Control',
+    adminPasskeyLabel: 'Enter Administrator Secret Passkey',
+    adminPasskeyPlaceholder: 'Enter secret passkey...',
+    adminVerifyBtn: 'Unlock Admin Portal',
+    adminLockedNotice: 'Protected platform administration portal. Authorized staff only.',
+    adminSignOut: 'Lock / Exit Admin',
   },
   hi: {
     brandName: 'कलाकृति',
@@ -710,5 +804,52 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     ready30sTitle: '३० सेकंड में उत्पाद तैयार',
     ready30sSubtitle: 'कारीगरों के लिए शून्य टाइपिंग: बस १ फोटो अपलोड करें और AI पूरी लिस्टिंग तैयार कर देगा।',
     ready30sAction: '✨ ३० सेकंड में तैयार',
+
+    // Customer Customization
+    requestCustomization: 'कस्टमाइज़ेशन का अनुरोध करें',
+    customizationModalTitle: 'कस्टम हस्तशिल्प अनुरोध',
+    customizationModalSubtitle: 'मास्टर कारीगर को सीधे अपने पसंदीदा रंग, माप, पारंपरिक रूपांकन या विशेष निर्देश भेजें।',
+    customColorLabel: 'पसंदीदा रंग / डाई शेड',
+    customColorPlaceholder: 'उदा. गहरा नील, गेरुआ, मस्टर्ड पीला, पन्ना हरा...',
+    customPatternLabel: 'पैटर्न / पारंपरिक रूपांकन',
+    customPatternPlaceholder: 'उदा. अजरक जाली, मोर बूटी, कैरी (पैसले), मंदिर बॉर्डर...',
+    customSizeLabel: 'कस्टम आकार / माप',
+    customSizePlaceholder: 'उदा. २.५ मीटर x १ मीटर, विशेष आकार या व्यास...',
+    customMessageLabel: 'कारीगर के लिए विशेष संदेश व निर्देश',
+    customMessagePlaceholder: 'विशिष्ट विवरण, उपहार या पारिवारिक उत्सव की आवश्यकता लिखें...',
+    customContactName: 'आपका पूरा नाम',
+    customContactPhone: 'संपर्क नंबर (व्हाट्सएप / कॉल हेतु)',
+    customContactEmail: 'ईमेल पता (वैकल्पिक)',
+    submitCustomizationBtn: 'कारीगर को कस्टमाइज़ेशन अनुरोध भेजें',
+    customizationSubmittedToast: 'कस्टमाइज़ेशन अनुरोध सीधे मास्टर कारीगर को भेजा गया! वे शीघ्र समीक्षा करेंगे।',
+    customizationRequestsTab: 'कस्टमाइज़ेशन पूछताछ',
+    noCustomizationRequests: 'अभी तक कोई कस्टमाइज़ेशन अनुरोध प्राप्त नहीं हुआ है।',
+    customizationStatusPending: 'समीक्षा लंबित',
+    customizationStatusAccepted: 'कारीगर द्वारा स्वीकृत',
+    customizationStatusDeclined: 'अस्वीकृत',
+    acceptCustomizationBtn: 'अनुरोध स्वीकार करें',
+    declineCustomizationBtn: 'अनुरोध अस्वीकार करें',
+    artisanEstimateDaysLabel: 'अनुमानित कार्य दिवस',
+    artisanEstimatePriceLabel: 'अनुमानित कस्टम मूल्य (₹)',
+    artisanNotePlaceholder: 'ग्राहक को शिल्प प्रक्रिया या डिलीवरी के संबंध में संदेश लिखें...',
+    declineReasonPlaceholder: 'अस्वीकृति का कारण (उदा. मौसम के कारण सामग्री अनुपलब्ध, करघा माप सीमा)...',
+    myCustomizationsTitle: 'मेरे कस्टम शिल्प अनुरोध',
+    myCustomizationsSub: 'कारीगरों को भेजे गए सीधे कस्टमाइज़ेशन अनुरोधों की स्थिति देखें',
+
+    // Multilingual Voice Input
+    voiceSpokenLang: 'बोली जाने वाली भाषा',
+    voiceOutputLang: 'लिस्टिंग आउटपुट भाषा',
+    voiceTranslateAction: 'आउटपुट भाषा में अनुवाद करें',
+    voiceTranslating: 'आवाज का अनुवाद हो रहा है...',
+    voiceOriginalSpoken: 'बोले गए मूल शब्द',
+    voiceTranslatedOutput: 'अनुवादित लिस्टिंग टेक्स्ट',
+
+    // Admin Protection
+    adminPortalTitle: 'कलाकृति प्रशासनिक नियंत्रण',
+    adminPasskeyLabel: 'प्रशासक सीक्रेट पासकी दर्ज करें',
+    adminPasskeyPlaceholder: 'सीक्रेट पासकी दर्ज करें...',
+    adminVerifyBtn: 'एडमिन पोर्टल खोलें',
+    adminLockedNotice: 'सुरक्षित प्लेटफ़ॉर्म एडमिन पोर्टल। केवल अधिकृत कर्मियों के लिए।',
+    adminSignOut: 'एडमिन से बाहर निकलें',
   },
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Order, ShippingDetails } from '../types';
+import { Order, ShippingDetails, CustomizationRequest } from '../types';
 import { DeliveryTracking } from './DeliveryTracking';
 import { CancelOrderModal } from './CancelOrderModal';
 import { ReturnExchangeModal } from './ReturnExchangeModal';
@@ -17,6 +17,10 @@ import {
   RotateCcw,
   RefreshCw,
   ShieldCheck,
+  Palette,
+  CheckCircle2,
+  XCircle,
+  Clock,
 } from 'lucide-react';
 
 interface CustomerOrdersViewProps {
@@ -28,6 +32,7 @@ interface CustomerOrdersViewProps {
   onCancelOrder?: (orderId: string, reason: string, comments?: string) => void;
   onRequestReturn?: (orderId: string, reason: string, refundMethod: string, comments?: string) => void;
   onRequestExchange?: (orderId: string, reason: string, exchangeDetails: string, comments?: string) => void;
+  customizations?: CustomizationRequest[];
 }
 
 export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
@@ -39,9 +44,10 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
   onCancelOrder,
   onRequestReturn,
   onRequestExchange,
+  customizations = [],
 }) => {
   const { language, t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'tracking' | 'shipping-details'>('tracking');
+  const [activeTab, setActiveTab] = useState<'tracking' | 'shipping-details' | 'customizations'>('tracking');
   const [selectedTrackingOrder, setSelectedTrackingOrder] = useState<Order | null>(null);
 
   // Modals state
@@ -117,11 +123,11 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
         </div>
 
         {/* Tab Selector */}
-        <div className="flex items-center gap-1 p-1 bg-[#F5F1EE] border border-[#E6D5C3] rounded-2xl text-xs font-semibold">
+        <div className="flex items-center gap-1 p-1 bg-[#F5F1EE] border border-[#E6D5C3] rounded-2xl text-xs font-semibold overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab('tracking')}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all whitespace-nowrap ${
               activeTab === 'tracking'
                 ? 'bg-[#8B5E34] text-white shadow-xs'
                 : 'text-[#6D5843] hover:text-[#3E2723]'
@@ -131,8 +137,19 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
           </button>
           <button
             type="button"
+            onClick={() => setActiveTab('customizations')}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all whitespace-nowrap ${
+              activeTab === 'customizations'
+                ? 'bg-[#8B5E34] text-white shadow-xs'
+                : 'text-[#6D5843] hover:text-[#3E2723]'
+            }`}
+          >
+            <Palette className="w-4 h-4" /> {t.myCustomizationsTitle} ({customizations.length})
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveTab('shipping-details')}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all whitespace-nowrap ${
               activeTab === 'shipping-details'
                 ? 'bg-[#8B5E34] text-white shadow-xs'
                 : 'text-[#6D5843] hover:text-[#3E2723]'
@@ -578,6 +595,123 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                   {addressForm.deliveryNotes}
                 </p>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 3: Customer Customization Requests */}
+      {activeTab === 'customizations' && (
+        <div className="space-y-4">
+          {customizations.length === 0 ? (
+            <div className="p-12 text-center bg-white border border-[#E6D5C3] rounded-3xl space-y-3">
+              <Palette className="w-12 h-12 text-[#A68B6D] mx-auto opacity-70" />
+              <h3 className="text-lg font-bold font-serif text-[#3E2723]">
+                {language === 'hi' ? 'कोई कस्टमाइज़ेशन अनुरोध नहीं मिला' : 'No Customization Requests Yet'}
+              </h3>
+              <p className="text-xs text-[#8C7355] max-w-sm mx-auto">
+                {language === 'hi'
+                  ? 'किसी भी उत्पाद विवरण पृष्ठ पर "कस्टमाइज़ेशन अनुरोध करें" बटन पर क्लिक करके कारीगर को अपने मनपसंद रंग, आकार या डिज़ाइन के लिए सीधा संदेश भेजें।'
+                  : 'Click "Request Customization" on any product detail page to request bespoke colors, sizes, or custom artisan motifs.'}
+              </p>
+              <button
+                type="button"
+                onClick={onNavigateToShop}
+                className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-[#8B5E34] text-white rounded-xl text-xs font-bold hover:bg-[#704824] transition-colors cursor-pointer"
+              >
+                {language === 'hi' ? 'बाज़ार का अन्वेषण करें' : 'Explore Marketplace'} <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {customizations.map((req) => (
+                <div
+                  key={req.id}
+                  className="bg-white border border-[#E6D5C3] rounded-2xl p-5 shadow-xs space-y-4 transition-all hover:border-[#8B5E34]/40"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#F5F1EE] pb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-[#8B5E34] font-serif">
+                          {req.productName}
+                        </span>
+                        <span className="text-[11px] text-[#A68B6D]">
+                          • {req.artisanName}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#8C7355] mt-0.5">
+                        {new Date(req.createdAt).toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
+                          req.status === 'Accepted'
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            : req.status === 'Declined'
+                            ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                            : 'bg-blue-50 text-blue-800 border border-blue-200'
+                        }`}
+                      >
+                        {req.status === 'Accepted' && <CheckCircle2 className="w-3.5 h-3.5" />}
+                        {req.status === 'Declined' && <XCircle className="w-3.5 h-3.5" />}
+                        {req.status === 'Pending' && <Clock className="w-3.5 h-3.5" />}
+                        <span>{req.status}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-[#FBF9F7] p-3.5 rounded-xl border border-[#E6D5C3]/60">
+                    <div>
+                      <span className="text-[#8C7355] block text-[11px]">Requested Customization:</span>
+                      <p className="font-semibold text-[#3E2723]">
+                        {req.color} • {req.pattern} • {req.size}
+                      </p>
+                    </div>
+                    {req.message && (
+                      <div>
+                        <span className="text-[#8C7355] block text-[11px]">Your Instructions:</span>
+                        <p className="text-[#3E2723] italic">"{req.message}"</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {req.status === 'Accepted' && (
+                    <div className="p-3.5 bg-emerald-50/80 border border-emerald-200/80 rounded-xl space-y-1.5 text-xs">
+                      <div className="flex items-center justify-between font-bold text-emerald-900">
+                        <span>✓ Artisan Agreed to Craft!</span>
+                        {req.estimatedPrice && <span>Estimated: ₹{req.estimatedPrice.toLocaleString('en-IN')}</span>}
+                      </div>
+                      {req.estimatedDays && (
+                        <p className="text-emerald-800 text-[11px]">
+                          Crafting & Dispatch time: ~{req.estimatedDays} business days
+                        </p>
+                      )}
+                      {req.artisanResponse && (
+                        <p className="text-emerald-900 text-xs italic">
+                          Artisan Note: "{req.artisanResponse}"
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {req.status === 'Declined' && (
+                    <div className="p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-xl space-y-1 text-xs">
+                      <span className="font-bold text-amber-900">Request Status Note</span>
+                      {req.artisanResponse && (
+                        <p className="text-amber-800 text-xs italic">
+                          Artisan Note: "{req.artisanResponse}"
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </div>

@@ -166,7 +166,7 @@ export const KalaKritiLogo: React.FC<LogoProps> = ({
     sm: 'w-10 h-10',
     md: 'w-14 h-14',
     lg: 'w-20 h-20',
-    hero: 'w-32 h-32 sm:w-36 sm:h-36',
+    hero: 'w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48',
   };
 
   const titleSizes = {
@@ -174,7 +174,7 @@ export const KalaKritiLogo: React.FC<LogoProps> = ({
     sm: 'text-base font-bold tracking-wider',
     md: 'text-xl sm:text-2xl font-bold tracking-widest',
     lg: 'text-3xl sm:text-4xl font-bold tracking-widest',
-    hero: 'text-4xl sm:text-5xl md:text-6xl font-bold tracking-[0.25em]',
+    hero: 'text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-[0.22em]',
   };
 
   if (iconOnly) {

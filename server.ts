@@ -105,7 +105,7 @@ The listing must respect traditional craftsmanship, highlight natural materials,
   // Multimodal AI Image Analysis for "Product Ready in 30 Seconds"
   app.post("/api/gemini/analyze-product-image", async (req, res) => {
     try {
-      const { imageBase64, artisanCraft, artisanLocation } = req.body;
+      const { imageBase64, artisanCraft, artisanLocation, productName, materials } = req.body;
       if (!imageBase64) {
         return res.status(400).json({ error: "Product image is required" });
       }
@@ -113,13 +113,13 @@ The listing must respect traditional craftsmanship, highlight natural materials,
       if (!process.env.GEMINI_API_KEY) {
         // Fallback realistic craft listing if API key is not present
         return res.json({
-          name: "Handcrafted Heritage Artisan Craft",
+          name: productName?.trim() || "Handcrafted Heritage Artisan Craft",
           category: artisanCraft ? (artisanCraft.includes("Pashmina") || artisanCraft.includes("Weaving") ? "Textiles & Weaving" : artisanCraft.includes("Terracotta") || artisanCraft.includes("Clay") ? "Pottery & Ceramics" : artisanCraft.includes("Madhubani") ? "Paintings & Art" : artisanCraft.includes("Brass") ? "Metalwork" : artisanCraft.includes("Wood") ? "Woodwork" : "Home Decor") : "Home Decor",
-          materials: "Authentic natural materials, organic mineral pigments",
+          materials: materials?.trim() || "Authentic natural materials, organic mineral pigments",
           color: "Warm terracotta and natural artisan pigments",
           craftTechnique: artisanCraft || "Traditional Indian Handmade Technique",
-          descriptionEnglish: "Exquisitely hand-crafted by master Indian artisans with time-honored heritage techniques. Built with sustainable raw materials and fine attention to cultural motifs, perfect for modern living and cultural connoisseurs.",
-          descriptionHindi: "भारतीय मास्टर कारीगरों द्वारा पारंपरिक विरासत तकनीकों से निर्मित उत्कृष्ट हस्तशिल्प। प्राकृतिक और टिकाऊ सामग्रियों से बना यह उत्पाद आपके घर के लिए एक आदर्श सांस्कृतिक आभूषण है।",
+          descriptionEnglish: `Exquisitely hand-crafted by master Indian artisans with time-honored heritage techniques. Built with ${materials?.trim() || "sustainable raw materials"} and fine attention to cultural motifs, perfect for modern living and cultural connoisseurs.`,
+          descriptionHindi: `भारतीय मास्टर कारीगरों द्वारा पारंपरिक विरासत तकनीकों से निर्मित उत्कृष्ट हस्तशिल्प। ${materials?.trim() ? materials.trim() + ' जैसी' : 'प्राकृतिक और'} टिकाऊ सामग्रियों से बना यह उत्पाद आपके घर के लिए एक आदर्श सांस्कृतिक आभूषण है।`,
           tags: ["handmade", "artisancrafted", "indianheritage", "sustainable", "kalakriti", "traditional"],
           suggestedPrice: 1850,
           minPrice: 1400,
@@ -143,16 +143,18 @@ The listing must respect traditional craftsmanship, highlight natural materials,
 
       const prompt = `You are the chief master curator and cataloging AI for KalaKriti, an Indian artisan marketplace.
 Look at this uploaded photo of a handcrafted Indian artisanal product.
+${productName ? `The artisan provided the Product Name: "${productName}". Keep or refine this title accurately.` : ""}
+${materials ? `The artisan provided the Materials Used: "${materials}". Keep or enrich this list of materials.` : ""}
 ${artisanCraft ? `Artisan's primary craft domain: "${artisanCraft}"` : ""}
 ${artisanLocation ? `Artisan's location: "${artisanLocation}"` : ""}
 
 Carefully examine the visual photo:
 1. Identify what type of handcrafted item this is (e.g. Terracotta vase, Pashmina shawl, Madhubani painting, Brass idol, Blue pottery plate, Wood carving, Dhokra figurine, etc.).
 2. Categorize it strictly into ONE of: "Textiles & Weaving", "Pottery & Ceramics", "Jewelry", "Woodwork", "Metalwork", "Home Decor", "Paintings & Art".
-3. Identify visual materials (e.g., Terracotta clay, Brass alloy, Mulberry silk, Teak wood, Natural indigo, etc.).
+3. Identify visual materials (incorporating "${materials || ''}").
 4. Describe dominant colors and surface textures.
 5. Identify craft technique (e.g., Handloom extra-weft, Lost-wax casting, Wheel-thrown and etched, Madhubani freehand, etc.).
-6. Write a 2-3 sentence evocative, professional English customer-facing description.
+6. Write a 2-3 sentence evocative, professional English customer-facing description mentioning the materials.
 7. Write an accurate, respectful Hindi translation of the description in natural Hindi (हिंदी विवरण).
 8. Generate 6-8 relevant lowercase search tags.
 9. Estimate a fair retail price in Indian Rupees (INR) that ensures living wages for the artisan, along with min and max recommended price.
@@ -392,6 +394,128 @@ User message: "${message}"`;
       console.error("Chat error:", err);
       return res.status(500).json({ error: err.message || "Chat failed" });
     }
+  });
+
+  // Multilingual Voice Input Translation Endpoint
+  app.post("/api/gemini/translate-voice", async (req, res) => {
+    try {
+      const { text, sourceLang, targetLang } = req.body;
+      if (!text || !text.trim()) {
+        return res.status(400).json({ error: "Text is required for translation" });
+      }
+
+      const targetLanguageName =
+        targetLang === "hi" || targetLang === "hi-IN"
+          ? "Hindi"
+          : targetLang === "en" || targetLang === "en-IN"
+          ? "English"
+          : targetLang || "English";
+
+      const sourceLanguageName =
+        sourceLang === "hi-IN" ? "Hindi"
+        : sourceLang === "gu-IN" ? "Gujarati"
+        : sourceLang === "mr-IN" ? "Marathi"
+        : sourceLang === "bn-IN" ? "Bengali"
+        : sourceLang === "ta-IN" ? "Tamil"
+        : sourceLang === "te-IN" ? "Telugu"
+        : sourceLang === "en-IN" ? "English"
+        : "Indian native language";
+
+      if (!process.env.GEMINI_API_KEY) {
+        // Fallback translation if API key is not present
+        return res.json({
+          translatedText: text,
+          detectedSourceLanguage: sourceLanguageName,
+          targetLanguage: targetLanguageName,
+          translated: false,
+        });
+      }
+
+      const ai = getGemini();
+      const prompt = `You are an expert multilingual translator specializing in Indian handicrafts, textiles, pottery, and cultural artifacts for the KalaKriti marketplace.
+Translate the following artisan voice transcript spoken in ${sourceLanguageName} into natural, high-quality, craft-respectful ${targetLanguageName}.
+Artisan voice transcript:
+"${text}"
+
+Preserve authentic artisan terms (such as Ajrakh, Kalamkari, Desi Kala cotton, Terracotta, Zari, Chanderi, Madhubani, etc.) with proper context. Output valid JSON only with keys "translatedText" and "detectedSourceLanguage".`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.7-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              translatedText: { type: Type.STRING, description: "Accurate, fluent translation in target language" },
+              detectedSourceLanguage: { type: Type.STRING, description: "Identified source language" },
+            },
+            required: ["translatedText"],
+          },
+        },
+      });
+
+      const parsed = JSON.parse(response.text || "{}");
+      return res.json({
+        translatedText: parsed.translatedText || text,
+        detectedSourceLanguage: parsed.detectedSourceLanguage || sourceLanguageName,
+        targetLanguage: targetLanguageName,
+        translated: true,
+      });
+    } catch (err: any) {
+      console.error("Voice translation error:", err);
+      return res.status(500).json({ error: err.message || "Failed to translate voice transcript" });
+    }
+  });
+
+  // Admin Security: Passkey Verification Endpoint
+  app.post("/api/admin/verify-passkey", (req, res) => {
+    try {
+      const { passkey } = req.body;
+      const expectedPasskey = process.env.ADMIN_SECRET_KEY || "kalakriti_admin_2026";
+
+      if (!passkey || typeof passkey !== "string") {
+        return res.status(400).json({ error: "Admin passkey is required" });
+      }
+
+      if (passkey.trim() === expectedPasskey.trim()) {
+        // Return a secure session token
+        return res.json({
+          success: true,
+          token: "admin_token_kalakriti_authorized",
+          expiresIn: 86400, // 24 hours
+          message: "Admin authentication successful",
+        });
+      } else {
+        return res.status(401).json({
+          success: false,
+          error: "Invalid administrator passkey",
+        });
+      }
+    } catch (err: any) {
+      return res.status(500).json({ error: "Authentication service error" });
+    }
+  });
+
+  // Admin Security: Protected Admin System Status
+  app.get("/api/admin/system-status", (req, res) => {
+    const adminToken = req.headers["x-admin-token"] || req.headers["authorization"]?.replace("Bearer ", "");
+    if (adminToken !== "admin_token_kalakriti_authorized") {
+      return res.status(403).json({
+        error: "Forbidden: Admin authorization required",
+        status: 403,
+      });
+    }
+
+    return res.json({
+      status: "authorized",
+      timestamp: new Date().toISOString(),
+      cluster: "KalaKriti Kutch & Pan-India Handicraft Grid",
+      activeNodes: 14,
+      settlementPipeline: "UPI 2.0 Instant Direct-to-Artisan",
+      commissionRate: "0.00%",
+      giRegistrySync: "Online - Validated",
+    });
   });
 
   // Vite middleware for development vs Static files in production

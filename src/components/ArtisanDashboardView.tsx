@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { ArtisanProfile, Product, Order, OrderStatus } from '../types';
+import { ArtisanProfile, Product, Order, OrderStatus, CustomizationRequest } from '../types';
 import { ProductCard } from './ProductCard';
 import { ArtisanOrderManagement } from './ArtisanOrderManagement';
 import { ArtisanProfileView } from './ArtisanProfileView';
 import { AddProductWizard } from './AddProductWizard';
 import { ProductReadyIn30Seconds } from './ProductReadyIn30Seconds';
-import { AdminView } from './AdminView';
-import { Package, Plus, User, Sparkles, TrendingUp, IndianRupee, Eye, ShoppingBag, Truck, Award, ShieldCheck, Zap } from 'lucide-react';
+import { ArtisanCustomizationManagement } from './ArtisanCustomizationManagement';
+import { Package, Plus, User, Sparkles, TrendingUp, IndianRupee, Eye, ShoppingBag, Truck, Award, Zap } from 'lucide-react';
 
 interface ArtisanDashboardViewProps {
   profile: ArtisanProfile;
@@ -14,9 +14,16 @@ interface ArtisanDashboardViewProps {
   products: Product[];
   orders: Order[];
   onProductPublished: (product: Product) => void;
+  onDeleteProduct?: (productId: string) => void;
   onUpdateOrderStatus: (orderId: string, newStatus: OrderStatus, courierPartner?: string, note?: string) => void;
   onSelectProduct: (product: Product) => void;
   onOpenAskAi: () => void;
+  customizations?: CustomizationRequest[];
+  onUpdateCustomizationStatus?: (
+    id: string,
+    status: 'Accepted' | 'Declined',
+    details?: { artisanResponse?: string; estimatedDays?: number; estimatedPrice?: number }
+  ) => void;
 }
 
 export const ArtisanDashboardView: React.FC<ArtisanDashboardViewProps> = ({
@@ -25,11 +32,14 @@ export const ArtisanDashboardView: React.FC<ArtisanDashboardViewProps> = ({
   products,
   orders,
   onProductPublished,
+  onDeleteProduct,
   onUpdateOrderStatus,
   onSelectProduct,
   onOpenAskAi,
+  customizations = [],
+  onUpdateCustomizationStatus,
 }) => {
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'profile' | 'wizard' | 'ready30s' | 'admin'>('orders');
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'profile' | 'wizard' | 'ready30s' | 'customizations'>('orders');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Artisan specific metrics
@@ -37,6 +47,10 @@ export const ArtisanDashboardView: React.FC<ArtisanDashboardViewProps> = ({
   const myOrders = orders.filter((o) =>
     o.items.some((i) => i.artisanId === profile.id || i.artisanName === profile.name || true)
   );
+  const myCustomizations = customizations.filter(
+    (c) => c.artisanId === profile.id || c.artisanName === profile.name
+  );
+  const pendingCustomizationsCount = myCustomizations.filter((c) => c.status === 'Pending').length;
   const totalRevenue = myOrders.reduce((sum, o) => sum + o.totalAmount, 0);
   const pendingOrdersCount = myOrders.filter((o) => o.status === 'Order Placed' || o.status === 'Accepted by Artisan').length;
 
@@ -229,14 +243,20 @@ export const ArtisanDashboardView: React.FC<ArtisanDashboardViewProps> = ({
 
         <button
           type="button"
-          onClick={() => setActiveTab('admin')}
+          onClick={() => setActiveTab('customizations')}
           className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            activeTab === 'admin'
-              ? 'bg-[#3E2723] text-white shadow-xs'
+            activeTab === 'customizations'
+              ? 'bg-[#8B5E34] text-white shadow-xs'
               : 'text-[#6D5843] hover:text-[#3E2723] hover:bg-[#FAF9F7]'
           }`}
         >
-          <ShieldCheck className="w-4 h-4 text-[#E6D5C3]" /> Admin Oversight & Trust Center
+          <Sparkles className="w-4 h-4 text-[#D8962B]" />
+          <span>Customization Inquiries ({myCustomizations.length})</span>
+          {pendingCustomizationsCount > 0 && (
+            <span className="ml-1 px-1.5 py-0.2 bg-amber-500 text-white text-[10px] font-bold rounded-full">
+              {pendingCustomizationsCount}
+            </span>
+          )}
         </button>
       </div>
 
@@ -278,17 +298,63 @@ export const ArtisanDashboardView: React.FC<ArtisanDashboardViewProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {myProducts.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={p}
-                showArtisan={false}
-                showStatus={true}
-                onClick={() => onSelectProduct(p)}
-              />
-            ))}
-          </div>
+          {myProducts.length === 0 ? (
+            <div className="p-12 text-center bg-white border border-[#E6D5C3] rounded-3xl space-y-4 shadow-xs">
+              <span className="text-4xl">🏺</span>
+              <h4 className="text-base font-bold font-serif text-[#3E2723]">
+                Your Artisan Catalog is Currently Empty (0 products)
+              </h4>
+              <p className="text-xs text-[#8C7355] max-w-md mx-auto">
+                No products are currently listed in your store. You can quickly add handcrafted items with AI storytelling using the buttons above.
+              </p>
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleStart30sReady}
+                  className="px-4 py-2 text-xs font-bold text-[#244238] bg-[#EAF2ED] hover:bg-[#D4E8DC] rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Zap className="w-4 h-4 text-[#D8962B] fill-current" />
+                  <span>Ready in 30 Seconds</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleStartAddProduct}
+                  className="px-4 py-2 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create New Listing</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {myProducts.map((p) => (
+                <div key={p.id} className="relative group">
+                  <ProductCard
+                    product={p}
+                    showArtisan={false}
+                    showStatus={true}
+                    onClick={() => onSelectProduct(p)}
+                  />
+                  {onDeleteProduct && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (window.confirm(`Permanently delete "${p.name}"? It will never reappear.`)) {
+                          onDeleteProduct(p.id);
+                        }
+                      }}
+                      className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/90 hover:bg-red-600 hover:text-white text-red-600 border border-red-200 shadow-md flex items-center justify-center transition-colors cursor-pointer"
+                      title="Permanently Delete Listing"
+                    >
+                      <span className="text-xs">🗑️</span>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -334,12 +400,16 @@ export const ArtisanDashboardView: React.FC<ArtisanDashboardViewProps> = ({
         />
       )}
 
-      {/* Tab 6: Admin Oversight & Trust Center */}
-      {activeTab === 'admin' && (
-        <AdminView
-          products={products}
-          orders={orders}
-          artisanProfile={profile}
+      {/* Tab 6: Customization Inquiries & Requests */}
+      {activeTab === 'customizations' && (
+        <ArtisanCustomizationManagement
+          customizations={customizations}
+          profile={profile}
+          onUpdateStatus={(id, status, details) => {
+            if (onUpdateCustomizationStatus) {
+              onUpdateCustomizationStatus(id, status, details);
+            }
+          }}
         />
       )}
     </div>

@@ -1,27 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Product, ProductCategory, ArtisanProfile } from '../types';
 import { useLanguage } from '../context/LanguageContext';
-import { 
-  Sparkles, 
-  Camera, 
-  Upload, 
-  Check, 
-  RefreshCw, 
-  ArrowRight, 
-  ArrowLeft, 
-  Eye, 
-  Sliders, 
-  Tag, 
-  IndianRupee, 
-  ShieldCheck, 
-  Clock, 
-  Layers, 
-  Palette, 
-  CheckCircle2, 
-  Edit3, 
+import {
+  Camera,
+  Sparkles,
+  Check,
+  RefreshCw,
+  IndianRupee,
+  ArrowRight,
+  Upload,
+  ArrowLeft,
+  Eye,
+  Sliders,
+  AlertCircle,
+  Clock,
+  CheckCircle2,
+  Edit3,
   HelpCircle,
   Zap,
-  ShoppingBag
+  ShoppingBag,
 } from 'lucide-react';
 
 interface ProductReadyIn30SecondsProps {
@@ -31,7 +28,7 @@ interface ProductReadyIn30SecondsProps {
   onSwitchToFullEditor: (prefilledProduct?: Partial<Product>) => void;
 }
 
-// Sample handcrafted photos for quick 1-click testing
+// Sample handcrafted crafts for quick 1-click testing
 const SAMPLE_CRAFT_PHOTOS = [
   {
     id: 'terracotta-vase',
@@ -39,6 +36,8 @@ const SAMPLE_CRAFT_PHOTOS = [
     labelHi: 'टेराकोटा फूलदान',
     url: 'https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?auto=format&fit=crop&w=800&q=80',
     craft: 'Terracotta Pottery',
+    defaultName: 'Handmade Terracotta Decorative Pitcher',
+    defaultMaterials: 'Natural riverbed clay, organic mineral slip',
   },
   {
     id: 'madhubani-art',
@@ -46,6 +45,8 @@ const SAMPLE_CRAFT_PHOTOS = [
     labelHi: 'मधुबनी पेंटिंग',
     url: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80',
     craft: 'Mithila / Madhubani',
+    defaultName: 'Madhubani Tree of Life Folk Canvas',
+    defaultMaterials: 'Handmade paper, natural plant and twig pigments',
   },
   {
     id: 'brass-lamp',
@@ -53,6 +54,8 @@ const SAMPLE_CRAFT_PHOTOS = [
     labelHi: 'पीतल दिया दीपक',
     url: 'https://images.unsplash.com/photo-1605371924599-2d0365da1ae0?auto=format&fit=crop&w=800&q=80',
     craft: 'Brass Metalwork',
+    defaultName: 'Traditional Hand-Etched Brass Peacock Diya',
+    defaultMaterials: 'Solid cast brass alloy, antique natural patina',
   },
   {
     id: 'pashmina-shawl',
@@ -60,6 +63,8 @@ const SAMPLE_CRAFT_PHOTOS = [
     labelHi: 'पश्मीना शॉल',
     url: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80',
     craft: 'Kashmiri Weaving',
+    defaultName: 'Kashmiri Handwoven Pure Pashmina Stole',
+    defaultMaterials: 'Authentic Himalayan pashm fiber, organic azo-free dyes',
   },
   {
     id: 'wood-carving',
@@ -67,7 +72,19 @@ const SAMPLE_CRAFT_PHOTOS = [
     labelHi: 'शीशम लकड़ी का डिब्बा',
     url: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
     craft: 'Saharanpur Woodwork',
+    defaultName: 'Carved Sheesham Wood Keepsake Box',
+    defaultMaterials: 'Sustainably harvested Sheesham rosewood, natural beeswax polish',
   },
+];
+
+const POPULAR_MATERIALS = [
+  'Natural Terracotta Clay',
+  'Solid Brass Alloy',
+  'Pure Handspun Cotton',
+  'Mulberry Silk & Zari',
+  'Sheesham Rosewood',
+  'Organic Mineral Pigments',
+  'Bell Metal / Dhokra Bronze',
 ];
 
 export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = ({
@@ -78,26 +95,73 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
 }) => {
   const { language } = useLanguage();
 
-  // Workflow State: 'upload' -> 'processing' -> 'review' -> 'published'
-  const [workflowState, setWorkflowState] = useState<'upload' | 'processing' | 'review' | 'published'>('upload');
+  // Load initial draft from sessionStorage if available to prevent broken state on refresh
+  const getStoredDraft = () => {
+    try {
+      const saved = sessionStorage.getItem('kalakriti_ready30s_draft');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  };
 
-  // Images
-  const [originalPhoto, setOriginalPhoto] = useState<string>('');
-  const [enhancedPhoto, setEnhancedPhoto] = useState<string>('');
+  const draft = getStoredDraft();
+
+  // Workflow State: 'upload' -> 'processing' -> 'review' -> 'published'
+  const [workflowState, setWorkflowState] = useState<'upload' | 'processing' | 'review' | 'published'>(
+    draft?.workflowState || 'upload'
+  );
+
+  // The 3 required inputs: 1. Photo, 2. Product Name, 3. Materials Used
+  const [originalPhoto, setOriginalPhoto] = useState<string>(draft?.originalPhoto || '');
+  const [productName, setProductName] = useState<string>(draft?.productName || '');
+  const [materials, setMaterials] = useState<string>(draft?.materials || '');
+
+  // Form validation feedback
+  const [validationError, setValidationError] = useState<string>('');
+
+  // AI Generated output & enhancement
+  const [enhancedPhoto, setEnhancedPhoto] = useState<string>(draft?.enhancedPhoto || '');
   const [showOriginalComparison, setShowOriginalComparison] = useState<boolean>(false);
 
   // 30s Countdown and Steps
   const [timerSeconds, setTimerSeconds] = useState<number>(0);
   const [processingStage, setProcessingStage] = useState<string>('Uploading handcrafted photo...');
 
-  // Generated Product Data
-  const [generatedProduct, setGeneratedProduct] = useState<Partial<Product> | null>(null);
+  // Generated Product Data for Review
+  const [generatedProduct, setGeneratedProduct] = useState<Partial<Product> | null>(
+    draft?.generatedProduct || null
+  );
   const [isRegenerating, setIsRegenerating] = useState<boolean>(false);
-  const [editablePrice, setEditablePrice] = useState<number>(1650);
+  const [editablePrice, setEditablePrice] = useState<number>(draft?.editablePrice || 1650);
   const [activeDescLang, setActiveDescLang] = useState<'en' | 'hi'>('en');
 
-  // Ref to hold canvas for enhancement
+  // Timer ref
   const timerIntervalRef = useRef<any>(null);
+
+  // Persist draft to sessionStorage
+  useEffect(() => {
+    try {
+      if (workflowState !== 'published') {
+        sessionStorage.setItem(
+          'kalakriti_ready30s_draft',
+          JSON.stringify({
+            workflowState,
+            originalPhoto,
+            productName,
+            materials,
+            enhancedPhoto,
+            generatedProduct,
+            editablePrice,
+          })
+        );
+      } else {
+        sessionStorage.removeItem('kalakriti_ready30s_draft');
+      }
+    } catch {
+      // Ignore sessionStorage errors
+    }
+  }, [workflowState, originalPhoto, productName, materials, enhancedPhoto, generatedProduct, editablePrice]);
 
   // Helper to apply non-destructive optical studio enhancement on an image URL/base64
   const enhanceImage = async (dataUrl: string): Promise<string> => {
@@ -130,9 +194,35 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
     });
   };
 
-  // Start the 30-Second AI Creation Sequence
-  const processPhotoAndGenerateListing = async (imageSrc: string) => {
-    setOriginalPhoto(imageSrc);
+  // Start the 30-Second AI Creation Sequence with the 3 inputs
+  const start30SecondCreation = async () => {
+    // Validate the 3 required fields
+    if (!originalPhoto) {
+      setValidationError(
+        language === 'hi'
+          ? 'कृपया पहले उत्पाद की फोटो अपलोड करें या एक नमूना चुनें।'
+          : 'Please upload or choose a product photo.'
+      );
+      return;
+    }
+    if (!productName.trim()) {
+      setValidationError(
+        language === 'hi'
+          ? 'कृपया उत्पाद का नाम दर्ज करें।'
+          : 'Please provide the product name.'
+      );
+      return;
+    }
+    if (!materials.trim()) {
+      setValidationError(
+        language === 'hi'
+          ? 'कृपया उपयोग की गई सामग्री (Materials Used) दर्ज करें।'
+          : 'Please provide the materials used.'
+      );
+      return;
+    }
+
+    setValidationError('');
     setWorkflowState('processing');
     setTimerSeconds(0);
 
@@ -147,33 +237,33 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
       if (elapsed <= 7) {
         setProcessingStage(
           language === 'hi'
-            ? '📸 फोटो को निखारा जा रहा है (स्टूडियो लाइटिंग व बैकग्राउंड)...'
+            ? '📸 फोटो को निखारा जा रहा है (स्टूडियो लाइटिंग व स्पष्टता)...'
             : '📸 Enhancing photo lighting, contrast & studio background...'
         );
       } else if (elapsed <= 16) {
         setProcessingStage(
           language === 'hi'
-            ? '🧠 AI शिल्प तकनीक, सामग्री व विरासत का विश्लेषण कर रहा है...'
-            : '🧠 AI analyzing craft technique, raw materials & heritage...'
+            ? `🧠 AI "${productName}" और "${materials}" के आधार पर शिल्प विश्लेषण कर रहा है...`
+            : `🧠 AI analyzing craft technique & materials for "${productName}"...`
         );
       } else if (elapsed <= 24) {
         setProcessingStage(
           language === 'hi'
-            ? '✍️ द्विभाषी शीर्षक, हिंदी विवरण और टैग तैयार किए जा रहे हैं...'
-            : '✍️ Composing bilingual title, Hindi description & search tags...'
+            ? '✍️ द्विभाषी अंग्रेजी व हिंदी विवरण और खोज टैग तैयार किए जा रहे हैं...'
+            : '✍️ Composing bilingual English & Hindi descriptions with search tags...'
         );
       } else if (elapsed <= 30) {
         setProcessingStage(
           language === 'hi'
-            ? '💰 उचित पारिश्रमिक और बाजार मूल्य की गणना की जा रही है...'
-            : '💰 Calculating fair artisan wages & market price range...'
+            ? '💰 उचित पारिश्रमिक और बाजार मूल्य सीमा की गणना हो रही है...'
+            : '💰 Calculating fair artisan wages & market benchmark pricing...'
         );
       }
     }, 1000);
 
     try {
       // Step 1: Enhance Image
-      const enhanced = await enhanceImage(imageSrc);
+      const enhanced = await enhanceImage(originalPhoto);
       setEnhancedPhoto(enhanced);
 
       // Step 2: Call Multimodal Gemini AI Image Analysis
@@ -181,9 +271,11 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          imageBase64: enhanced || imageSrc,
+          imageBase64: enhanced || originalPhoto,
           artisanCraft: artisanProfile.craft,
           artisanLocation: artisanProfile.location,
+          productName: productName.trim(),
+          materials: materials.trim(),
         }),
       });
 
@@ -204,13 +296,17 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
 
       const preparedProduct: Partial<Product> = {
         id: 'prod_' + Date.now(),
-        name: aiData.name || 'Master Handcrafted Heritage Item',
+        name: productName.trim() || aiData.name || 'Master Handcrafted Item',
         category: (aiData.category as ProductCategory) || 'Home Decor',
-        materials: aiData.materials || 'Natural materials, organic dyes',
+        materials: materials.trim() || aiData.materials || 'Natural materials, organic dyes',
         color: aiData.color || 'Earthen natural pigments',
         craftTechnique: aiData.craftTechnique || artisanProfile.craft || 'Handmade Heritage Technique',
-        descriptionEnglish: aiData.descriptionEnglish || 'Exquisitely handcrafted by master Indian artisans with sustainable materials and time-honored heritage techniques.',
-        descriptionHindi: aiData.descriptionHindi || 'मास्टर कारीगरों द्वारा पारंपरिक विरासत तकनीकों और प्राकृतिक सामग्रियों से निर्मित प्रामाणिक हस्तशिल्प।',
+        descriptionEnglish:
+          aiData.descriptionEnglish ||
+          `Exquisitely handcrafted by master artisans with ${materials.trim()} and time-honored heritage techniques.`,
+        descriptionHindi:
+          aiData.descriptionHindi ||
+          `मास्टर कारीगरों द्वारा ${materials.trim()} और पारंपरिक विरासत तकनीकों से निर्मित प्रामाणिक हस्तशिल्प।`,
         tags: aiData.tags && aiData.tags.length > 0 ? aiData.tags : ['handmade', 'artisancraft', 'kalakriti'],
         price: finalPrice,
         oldPrice: Math.round(finalPrice * 1.25),
@@ -222,7 +318,7 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
         emoji: categoryEmojis[aiData.category] || '🪷',
         views: 0,
         sold: 0,
-        imageOriginal: imageSrc,
+        imageOriginal: originalPhoto,
         imageEnhanced: enhanced,
         enhanceMode: 'studio',
         artisanId: artisanProfile.id,
@@ -231,26 +327,24 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
         createdAt: Date.now(),
       };
 
-      // Keep timer natural, up to ~6-10 seconds or fast
       setTimeout(() => {
         clearInterval(timerIntervalRef.current);
         setGeneratedProduct(preparedProduct);
         setWorkflowState('review');
       }, 1500);
-
     } catch (err) {
-      console.error('30s AI generation failed, using fallback:', err);
+      console.error('30s AI generation error, using fallback:', err);
       clearInterval(timerIntervalRef.current);
-      // Fallback robust product
+
       const fallback: Partial<Product> = {
         id: 'prod_' + Date.now(),
-        name: `Handcrafted ${artisanProfile.craft || 'Artisan Craft'}`,
+        name: productName.trim() || `Handcrafted ${artisanProfile.craft || 'Artisan Craft'}`,
         category: 'Home Decor',
-        materials: 'Pure natural materials & mineral dyes',
+        materials: materials.trim() || 'Pure natural materials & mineral pigments',
         color: 'Authentic Indian earth palette',
         craftTechnique: artisanProfile.craft || 'Traditional Handcraft',
-        descriptionEnglish: 'Authentic Indian handcrafted creation, made with care and patience by traditional artisans.',
-        descriptionHindi: 'पारंपरिक कारीगरों द्वारा धैर्य और प्रामाणिक तकनीकों से तैयार किया गया सुंदर हस्तशिल्प।',
+        descriptionEnglish: `Authentic Indian handcrafted creation featuring ${materials.trim()}, crafted with patience and precision by traditional artisans.`,
+        descriptionHindi: `पारंपरिक कारीगरों द्वारा ${materials.trim()} से धैर्य और प्रामाणिक तकनीकों से तैयार किया गया सुंदर हस्तशिल्प।`,
         tags: ['handmade', 'artisan-made', 'authentic', 'kalakriti'],
         price: 1650,
         oldPrice: 2100,
@@ -262,8 +356,8 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
         emoji: '🪷',
         views: 0,
         sold: 0,
-        imageOriginal: imageSrc,
-        imageEnhanced: imageSrc,
+        imageOriginal: originalPhoto,
+        imageEnhanced: originalPhoto,
         enhanceMode: 'studio',
         artisanId: artisanProfile.id,
         artisanName: artisanProfile.name,
@@ -283,21 +377,39 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
-      processPhotoAndGenerateListing(dataUrl);
+      setOriginalPhoto(dataUrl);
+      if (validationError) setValidationError('');
     };
     reader.readAsDataURL(file);
   };
 
   // Handle Sample Photo Selection
-  const handleSelectSamplePhoto = async (sampleUrl: string) => {
-    processPhotoAndGenerateListing(sampleUrl);
+  const handleSelectSampleCraft = (sample: (typeof SAMPLE_CRAFT_PHOTOS)[0]) => {
+    setOriginalPhoto(sample.url);
+    // Prefill product name and materials if empty or matching another sample
+    if (!productName || SAMPLE_CRAFT_PHOTOS.some((s) => s.defaultName === productName)) {
+      setProductName(sample.defaultName);
+    }
+    if (!materials || SAMPLE_CRAFT_PHOTOS.some((s) => s.defaultMaterials === materials)) {
+      setMaterials(sample.defaultMaterials);
+    }
+    if (validationError) setValidationError('');
+  };
+
+  // Quick Material Pill toggle/append
+  const handleSelectMaterialPill = (mat: string) => {
+    if (!materials.trim()) {
+      setMaterials(mat);
+    } else if (!materials.includes(mat)) {
+      setMaterials(`${materials}, ${mat}`);
+    }
+    if (validationError) setValidationError('');
   };
 
   // Regenerate with AI
   const handleRegenerate = async () => {
-    if (!originalPhoto) return;
     setIsRegenerating(true);
-    await processPhotoAndGenerateListing(originalPhoto);
+    await start30SecondCreation();
     setIsRegenerating(false);
   };
 
@@ -307,9 +419,9 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
 
     const finalProduct: Product = {
       id: generatedProduct.id || 'prod_' + Date.now(),
-      name: generatedProduct.name || 'Handcrafted Heritage Item',
+      name: (productName.trim() || generatedProduct.name || 'Handcrafted Heritage Item').trim(),
       category: generatedProduct.category || 'Home Decor',
-      materials: generatedProduct.materials || 'Natural materials',
+      materials: (materials.trim() || generatedProduct.materials || 'Natural materials').trim(),
       color: generatedProduct.color || 'Earthen pigments',
       craftTechnique: generatedProduct.craftTechnique || 'Handmade',
       descriptionEnglish: generatedProduct.descriptionEnglish || 'Handcrafted by master artisan.',
@@ -335,6 +447,7 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
     };
 
     onProductPublished(finalProduct);
+    sessionStorage.removeItem('kalakriti_ready30s_draft');
     setWorkflowState('published');
   };
 
@@ -354,10 +467,10 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 bg-[#D8962B] text-[#244238] font-bold text-xs uppercase tracking-wider rounded-full flex items-center gap-1 shadow-xs">
                 <Zap className="w-3.5 h-3.5 fill-current" />
-                {language === 'hi' ? 'सुपरफास्ट मोड' : 'Superfast Mode'}
+                {language === 'hi' ? 'त्वरित एआई मोड' : 'Quick AI Mode'}
               </span>
               <span className="text-xs text-[#C2D8D0] font-medium">
-                {language === 'hi' ? 'कारीगरों के लिए शून्य टाइपिंग' : 'Zero Typing Needed for Artisans'}
+                {language === 'hi' ? 'केवल ३ विवरण आवश्यक' : 'Only 3 Simple Inputs Required'}
               </span>
             </div>
 
@@ -368,8 +481,8 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
 
             <p className="text-xs sm:text-sm text-[#E2EBE8] max-w-xl">
               {language === 'hi'
-                ? 'बस अपने शिल्प की १ फोटो अपलोड करें। AI फोटो को निखारकर नाम, विवरण, उचित मूल्य व श्रेणी ३० सेकंड में तैयार कर देगा!'
-                : 'Simply upload 1 photo of your handmade craft. AI automatically enhances your photo, identifies materials, crafts bilingual descriptions, and calculates fair-trade pricing in 30 seconds!'}
+                ? 'केवल १. फोटो, २. नाम, और ३. उपयोग की गई सामग्री प्रदान करें। बाकी सब कुछ (विवरण, टैग, उचित मूल्य) AI स्वतः तैयार करेगा!'
+                : 'Simply provide 1. Product Photo, 2. Product Name, and 3. Materials Used. Everything else is generated by the AI system!'}
             </p>
           </div>
 
@@ -377,17 +490,17 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
             <button
               type="button"
               onClick={() => onSwitchToFullEditor(generatedProduct || undefined)}
-              className="px-4 py-2.5 text-xs font-semibold text-white/90 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-all flex items-center gap-1.5"
+              className="px-4 py-2.5 text-xs font-semibold text-white/90 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Sliders className="w-3.5 h-3.5" />
-              {language === 'hi' ? 'मानक ५-चरणीय संपादक' : 'Standard 5-Step Wizard'}
+              {language === 'hi' ? 'विस्तृत संपादक' : 'Standard Full Editor'}
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="px-3.5 py-2.5 text-xs font-semibold text-white/70 hover:text-white transition-colors"
+              className="px-3.5 py-2.5 text-xs font-semibold text-white/70 hover:text-white transition-colors cursor-pointer"
             >
-              {language === 'hi' ? 'रद्द करें' : 'Cancel'}
+              {language === 'hi' ? 'डैशबोर्ड पर लौटें' : 'Exit to Dashboard'}
             </button>
           </div>
         </div>
@@ -397,308 +510,535 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
       </div>
 
       {/* =========================================================================
-          STAGE 1: PHOTO UPLOAD
+          STAGE 1: 3-INPUT SIMPLIFIED QUICK FORM (Photo, Name, Materials)
           ========================================================================= */}
       {workflowState === 'upload' && (
-        <div className="p-8 sm:p-10 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs space-y-8 text-center">
-          <div className="max-w-md mx-auto space-y-3">
-            <div className="w-20 h-20 rounded-3xl bg-[#FAF6F0] text-[#8B5E34] border-2 border-[#E6D5C3] flex items-center justify-center mx-auto shadow-sm">
-              <Camera className="w-10 h-10" />
-            </div>
+        <div className="p-6 sm:p-10 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs space-y-8">
+          <div className="text-center max-w-md mx-auto space-y-2">
+            <span className="text-xs uppercase tracking-wider font-bold text-[#8B5E34]">
+              {language === 'hi' ? 'सरल ३-चरणीय इनपुट' : 'Quick 3-Field Creator'}
+            </span>
             <h2 className="text-xl sm:text-2xl font-bold font-serif text-[#3E2723]">
-              {language === 'hi' ? 'चरण १: अपने हस्तशिल्प की फोटो अपलोड करें' : 'Step 1: Upload Your Product Photo'}
+              {language === 'hi' ? 'अपने उत्पाद की ३ मुख्य बातें दर्ज करें' : 'Provide 3 Simple Details'}
             </h2>
             <p className="text-xs text-[#8C7355]">
               {language === 'hi'
-                ? 'कैमरा या गैलरी से किसी भी हस्तशिल्प की सामान्य फोटो चुनें। हमारा AI लाइटिंग को ठीक करके पूरी लिस्टिंग स्वतः तैयार करेगा।'
-                : 'Take or choose a clear photo from your mobile camera or computer. Our AI will handle the rest in 30 seconds.'}
+                ? 'फोटो, उत्पाद का नाम, और सामग्री दर्ज करें — शेष विवरण और उचित मूल्य AI ३० सेकंड में तैयार करेगा।'
+                : 'Enter your photo, product name, and materials used. Our AI handles the rest in 30 seconds.'}
             </p>
           </div>
 
-          {/* Main Drag & Drop / Upload Button */}
-          <div className="max-w-xl mx-auto">
-            <label className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-[#8B5E34]/50 hover:border-[#8B5E34] rounded-3xl bg-[#FAF9F7] hover:bg-[#F5F1EE] cursor-pointer transition-all group shadow-inner">
-              <div className="w-14 h-14 rounded-2xl bg-white border border-[#E6D5C3] flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform mb-3">
-                <Upload className="w-7 h-7 text-[#8B5E34]" />
-              </div>
-              <span className="text-base font-bold text-[#3E2723]">
-                {language === 'hi' ? 'फोटो अपलोड करें या कैमरा खोलें' : 'Click to Upload / Open Camera'}
+          {/* Validation Banner if missing fields */}
+          {validationError && (
+            <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs flex items-center gap-2 max-w-xl mx-auto animate-in fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+              <span className="font-medium">{validationError}</span>
+            </div>
+          )}
+
+          {/* Progress Indicators for the 3 Requirements */}
+          <div className="grid grid-cols-3 gap-3 max-w-2xl mx-auto">
+            <div
+              className={`p-3 rounded-2xl border text-center transition-all ${
+                originalPhoto
+                  ? 'bg-green-50/70 border-green-200 text-green-800'
+                  : 'bg-[#FAF9F7] border-[#E6D5C3] text-[#8C7355]'
+              }`}
+            >
+              <span className="text-[10px] font-bold uppercase tracking-wider block">Requirement 1</span>
+              <span className="text-xs font-bold flex items-center justify-center gap-1 mt-0.5">
+                {originalPhoto ? <Check className="w-3.5 h-3.5 text-green-600" /> : '📸'} Product Photo
               </span>
-              <span className="text-xs text-[#8C7355] mt-1">
-                {language === 'hi' ? 'JPG, PNG, WEBP फोटो समर्थित (मोबाइल व डेस्कटॉप)' : 'Supports JPG, PNG, WEBP from camera or gallery'}
+            </div>
+
+            <div
+              className={`p-3 rounded-2xl border text-center transition-all ${
+                productName.trim()
+                  ? 'bg-green-50/70 border-green-200 text-green-800'
+                  : 'bg-[#FAF9F7] border-[#E6D5C3] text-[#8C7355]'
+              }`}
+            >
+              <span className="text-[10px] font-bold uppercase tracking-wider block">Requirement 2</span>
+              <span className="text-xs font-bold flex items-center justify-center gap-1 mt-0.5">
+                {productName.trim() ? <Check className="w-3.5 h-3.5 text-green-600" /> : '🏷️'} Product Name
               </span>
-              <span className="mt-4 px-6 py-2.5 bg-[#8B5E34] text-white font-bold text-xs rounded-xl shadow-xs group-hover:bg-[#734B26] transition-colors flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#D8962B]" />
-                {language === 'hi' ? '३० सेकंड में लिस्टिंग शुरू करें' : 'Start 30-Second AI Creation'}
+            </div>
+
+            <div
+              className={`p-3 rounded-2xl border text-center transition-all ${
+                materials.trim()
+                  ? 'bg-green-50/70 border-green-200 text-green-800'
+                  : 'bg-[#FAF9F7] border-[#E6D5C3] text-[#8C7355]'
+              }`}
+            >
+              <span className="text-[10px] font-bold uppercase tracking-wider block">Requirement 3</span>
+              <span className="text-xs font-bold flex items-center justify-center gap-1 mt-0.5">
+                {materials.trim() ? <Check className="w-3.5 h-3.5 text-green-600" /> : '🧵'} Materials Used
               </span>
-              <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileUpload} />
-            </label>
+            </div>
           </div>
 
-          {/* Quick 1-Click Sample Preset Craft Photos */}
-          <div className="pt-6 border-t border-[#E6D5C3]/70 space-y-3">
-            <span className="text-xs uppercase tracking-wider font-bold text-[#8B5E34] block">
-              {language === 'hi' ? '💡 या तुरंत परीक्षण के लिए एक नमूना शिल्प चुनें:' : '💡 Or choose a sample craft to test instantly in 1-click:'}
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 max-w-2xl mx-auto">
-              {SAMPLE_CRAFT_PHOTOS.map((sample) => (
-                <button
-                  key={sample.id}
-                  type="button"
-                  onClick={() => handleSelectSamplePhoto(sample.url)}
-                  className="p-2.5 bg-[#FAF9F7] hover:bg-white border border-[#E6D5C3] hover:border-[#8B5E34] rounded-2xl text-left transition-all hover:scale-105 group shadow-2xs flex flex-col items-center text-center cursor-pointer"
-                >
-                  <div className="w-full aspect-square rounded-xl overflow-hidden mb-2 bg-[#EFE9DF]">
-                    <img src={sample.url} alt={sample.label} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                  </div>
-                  <span className="text-[11px] font-bold text-[#3E2723] line-clamp-1">
-                    {language === 'hi' ? sample.labelHi : sample.label}
+          <div className="space-y-6 max-w-2xl mx-auto">
+            {/* 1. PRODUCT PHOTO */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-[#3E2723] uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-[#8B5E34] text-white flex items-center justify-center text-[10px]">1</span>
+                  <span>{language === 'hi' ? 'उत्पाद फोटो *' : 'Product Photo *'}</span>
+                </label>
+                {originalPhoto && (
+                  <span className="text-[11px] font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                    <Check className="w-3 h-3" /> Photo Attached
                   </span>
-                  <span className="text-[9px] text-[#8C7355]">{sample.craft}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================================
-          STAGE 2: 30-SECOND COUNTDOWN & PROCESSING ENGINE
-          ========================================================================= */}
-      {workflowState === 'processing' && (
-        <div className="p-10 bg-white border border-[#E6D5C3] rounded-3xl shadow-sm space-y-8 text-center max-w-2xl mx-auto">
-          {/* Animated Spinner + Timer */}
-          <div className="relative w-32 h-32 mx-auto flex items-center justify-center">
-            {/* SVG Circular Progress Ring */}
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-              <circle
-                cx="50"
-                cy="50"
-                r="42"
-                stroke="#EFE9DF"
-                strokeWidth="7"
-                fill="none"
-              />
-              <circle
-                cx="50"
-                cy="50"
-                r="42"
-                stroke="#8B5E34"
-                strokeWidth="7"
-                strokeDasharray="264"
-                strokeDashoffset={264 - (264 * Math.min(timerSeconds, 30)) / 30}
-                strokeLinecap="round"
-                fill="none"
-                className="transition-all duration-1000 ease-linear"
-              />
-            </svg>
-            <div className="absolute flex flex-col items-center justify-center">
-              <span className="text-3xl font-bold font-serif text-[#3E2723]">
-                {Math.min(timerSeconds, 30)}s
-              </span>
-              <span className="text-[10px] uppercase font-bold text-[#8B5E34]">
-                / 30s
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <span className="text-xs uppercase tracking-wider font-bold text-[#8B5E34] flex items-center justify-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-[#D8962B] animate-spin" />
-              {language === 'hi' ? 'AI शिल्प निर्माण प्रगति' : 'AI Craft Generation in Progress'}
-            </span>
-            <h2 className="text-xl font-bold font-serif text-[#3E2723]">
-              {processingStage}
-            </h2>
-            <p className="text-xs text-[#8C7355] max-w-md mx-auto">
-              {language === 'hi'
-                ? 'कृपया प्रतीक्षा करें — कोई टाइपिंग आवश्यक नहीं है। AI आपके लिए पूर्ण उत्पाद कार्ड तैयार कर रहा है।'
-                : 'Please wait — zero typing required. AI is assembling your complete marketplace listing.'}
-            </p>
-          </div>
-
-          {/* 4 Multi-stage Progress Indicators */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left max-w-lg mx-auto text-xs">
-            <div className={`p-3 rounded-xl border transition-all flex items-center gap-2.5 ${timerSeconds >= 3 ? 'bg-[#FAF6F0] border-[#8B5E34]/40 text-[#3E2723]' : 'bg-[#FAF9F7] border-[#E6D5C3] text-[#8C7355]'}`}>
-              {timerSeconds >= 7 ? <CheckCircle2 className="w-4 h-4 text-[#244238] shrink-0" /> : <RefreshCw className="w-4 h-4 animate-spin text-[#8B5E34] shrink-0" />}
-              <span>{language === 'hi' ? 'स्टूडियो फोटो संवर्धन (Lighting & BG)' : '1. Studio Photo Enhancement'}</span>
-            </div>
-
-            <div className={`p-3 rounded-xl border transition-all flex items-center gap-2.5 ${timerSeconds >= 8 ? 'bg-[#FAF6F0] border-[#8B5E34]/40 text-[#3E2723]' : 'bg-[#FAF9F7] border-[#E6D5C3] text-[#8C7355]'}`}>
-              {timerSeconds >= 16 ? <CheckCircle2 className="w-4 h-4 text-[#244238] shrink-0" /> : <RefreshCw className={`w-4 h-4 text-[#8B5E34] shrink-0 ${timerSeconds >= 8 ? 'animate-spin' : 'opacity-40'}`} />}
-              <span>{language === 'hi' ? 'शिल्प व सामग्री पहचान (Vision AI)' : '2. Craft & Materials Vision AI'}</span>
-            </div>
-
-            <div className={`p-3 rounded-xl border transition-all flex items-center gap-2.5 ${timerSeconds >= 17 ? 'bg-[#FAF6F0] border-[#8B5E34]/40 text-[#3E2723]' : 'bg-[#FAF9F7] border-[#E6D5C3] text-[#8C7355]'}`}>
-              {timerSeconds >= 24 ? <CheckCircle2 className="w-4 h-4 text-[#244238] shrink-0" /> : <RefreshCw className={`w-4 h-4 text-[#8B5E34] shrink-0 ${timerSeconds >= 17 ? 'animate-spin' : 'opacity-40'}`} />}
-              <span>{language === 'hi' ? 'द्विभाषी विवरण व टैग (Eng + हिंदी)' : '3. Bilingual Story & Search Tags'}</span>
-            </div>
-
-            <div className={`p-3 rounded-xl border transition-all flex items-center gap-2.5 ${timerSeconds >= 25 ? 'bg-[#FAF6F0] border-[#8B5E34]/40 text-[#3E2723]' : 'bg-[#FAF9F7] border-[#E6D5C3] text-[#8C7355]'}`}>
-              {timerSeconds >= 30 ? <CheckCircle2 className="w-4 h-4 text-[#244238] shrink-0" /> : <RefreshCw className={`w-4 h-4 text-[#8B5E34] shrink-0 ${timerSeconds >= 25 ? 'animate-spin' : 'opacity-40'}`} />}
-              <span>{language === 'hi' ? 'उचित मूल्य व मजदूरी गणना' : '4. Fair-Trade Wage Pricing'}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================================
-          STAGE 3: COMPLETED LISTING PREVIEW & SATISFACTION DECISION
-          ========================================================================= */}
-      {workflowState === 'review' && generatedProduct && (
-        <div className="space-y-6">
-          {/* Main Success Callout Banner */}
-          <div className="p-4 bg-[#EAF2ED] border border-[#244238]/30 rounded-2xl flex items-center justify-between gap-3 text-xs text-[#1E3B30]">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-[#244238] shrink-0" />
-              <span className="font-bold">
-                {language === 'hi'
-                  ? '🎉 आपका उत्पाद ३० सेकंड में पूरी तरह तैयार हो चुका है! कृपया नीचे समीक्षा करें:'
-                  : '🎉 Your product listing was generated in 30 seconds! Review your ready-to-publish card below:'}
-              </span>
-            </div>
-            <span className="text-[11px] font-semibold bg-[#244238] text-white px-2.5 py-0.5 rounded-full">
-              {language === 'hi' ? '१००% स्वतः तैयार' : '100% Auto-Generated'}
-            </span>
-          </div>
-
-          {/* Product Listing Card Preview */}
-          <div className="p-6 sm:p-8 bg-white border-2 border-[#E6D5C3] rounded-3xl shadow-md space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-              {/* Photo Area (With Before/After Toggle) */}
-              <div className="md:col-span-5 space-y-3">
-                <div className="aspect-square rounded-2xl bg-[#FAF9F7] border border-[#E6D5C3] overflow-hidden relative shadow-inner flex items-center justify-center p-2 group">
-                  <img
-                    src={showOriginalComparison ? originalPhoto : (enhancedPhoto || originalPhoto)}
-                    alt={generatedProduct.name}
-                    className="w-full h-full object-contain transition-all duration-300"
-                  />
-                  <div className="absolute top-3 left-3 bg-[#3E2723]/80 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-[#D8962B]" />
-                    {showOriginalComparison ? 'Original Photo' : 'Studio Enhanced'}
-                  </div>
-                </div>
-
-                {/* Photo Enhancer Toggle */}
-                <div className="flex items-center justify-between text-xs px-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowOriginalComparison(!showOriginalComparison)}
-                    className="text-[#8B5E34] hover:text-[#734B26] font-bold flex items-center gap-1 underline underline-offset-2"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    {showOriginalComparison ? 'Show Enhanced Studio Photo' : 'Compare Original Photo'}
-                  </button>
-                  <span className="text-[10px] text-[#8C7355]">Optical Studio Lighting</span>
-                </div>
+                )}
               </div>
 
-              {/* Product Metadata & AI Details */}
-              <div className="md:col-span-7 space-y-4">
-                {/* Category & GI Badges */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-bold bg-[#FAF6F0] text-[#8B5E34] border border-[#E6D5C3] px-3 py-1 rounded-full uppercase tracking-wider">
-                    {generatedProduct.emoji} {generatedProduct.category}
-                  </span>
-                  <span className="text-[11px] font-semibold bg-[#EAF2ED] text-[#244238] border border-[#244238]/20 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Certified Handmade
-                  </span>
-                </div>
-
-                {/* Title */}
-                <h2 className="text-2xl font-serif font-bold text-[#3E2723] leading-snug">
-                  {generatedProduct.name}
-                </h2>
-
-                {/* Price Section */}
-                <div className="p-4 bg-[#FAF9F7] border border-[#E6D5C3] rounded-2xl flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-[#8B5E34] block">
-                      {language === 'hi' ? 'उचित खुदरा मूल्य (Fair Retail Price)' : 'Fair Retail Selling Price'}
-                    </span>
-                    <div className="flex items-baseline gap-2 mt-0.5">
-                      <span className="text-2xl font-serif font-bold text-[#3E2723]">
-                        ₹{editablePrice.toLocaleString('en-IN')}
-                      </span>
-                      <span className="text-xs text-[#8C7355] line-through">
-                        ₹{Math.round(editablePrice * 1.25).toLocaleString('en-IN')}
-                      </span>
+              {originalPhoto ? (
+                <div className="p-4 bg-[#FAF9F7] border border-[#E6D5C3] rounded-2xl flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-white border border-[#E6D5C3] shadow-inner shrink-0">
+                      <img src={originalPhoto} alt="Product" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="text-left">
+                      <span className="text-xs font-bold text-[#3E2723] block">Handcrafted Photo Selected</span>
+                      <span className="text-[11px] text-[#8C7355]">Ready for AI optical studio enhancement</span>
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <span className="text-[10px] text-[#8C7355] block">
-                      {language === 'hi' ? 'अनुशंसित मूल्य दायरा:' : 'Recommended Range:'}
-                    </span>
-                    <span className="text-xs font-bold text-[#6D5843]">
-                      ₹{generatedProduct.minPrice?.toLocaleString('en-IN')} – ₹{generatedProduct.maxPrice?.toLocaleString('en-IN')}
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <label className="px-3.5 py-2 text-xs font-bold text-[#3E2723] bg-white border border-[#E6D5C3] hover:bg-[#F5F1EE] rounded-xl cursor-pointer shadow-2xs">
+                      Change Photo
+                      <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                    </label>
                   </div>
                 </div>
-
-                {/* Bilingual Description Tabs */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between border-b border-[#E6D5C3] pb-1">
-                    <span className="text-xs font-bold text-[#8B5E34] uppercase tracking-wider">
-                      {language === 'hi' ? 'उत्पाद विवरण' : 'Product Story & Details'}
-                    </span>
-                    <div className="flex items-center gap-1 text-xs">
-                      <button
-                        type="button"
-                        onClick={() => setActiveDescLang('en')}
-                        className={`px-2 py-0.5 rounded-md font-bold transition-colors ${activeDescLang === 'en' ? 'bg-[#8B5E34] text-white' : 'text-[#6D5843] hover:bg-[#FAF9F7]'}`}
-                      >
-                        English
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveDescLang('hi')}
-                        className={`px-2 py-0.5 rounded-md font-bold transition-colors ${activeDescLang === 'hi' ? 'bg-[#8B5E34] text-white' : 'text-[#6D5843] hover:bg-[#FAF9F7]'}`}
-                      >
-                        हिंदी (Hindi)
-                      </button>
-                    </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-[#8B5E34]/40 hover:border-[#8B5E34] rounded-3xl bg-[#FAF9F7] hover:bg-[#F5F1EE] cursor-pointer transition-all group shadow-inner">
+                  <div className="w-12 h-12 rounded-2xl bg-white border border-[#E6D5C3] flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform mb-2">
+                    <Upload className="w-6 h-6 text-[#8B5E34]" />
                   </div>
+                  <span className="text-sm font-bold text-[#3E2723]">
+                    {language === 'hi' ? 'फोटो अपलोड करें या कैमरा खोलें' : 'Click to Upload / Open Camera'}
+                  </span>
+                  <span className="text-[11px] text-[#8C7355] mt-0.5">
+                    JPG, PNG, WEBP from camera or gallery
+                  </span>
+                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileUpload} />
+                </label>
+              )}
 
-                  <p className="text-xs text-[#5D4037] leading-relaxed p-3 bg-[#FAF9F7] rounded-xl border border-[#E6D5C3]/70">
-                    {activeDescLang === 'en'
-                      ? generatedProduct.descriptionEnglish
-                      : generatedProduct.descriptionHindi}
-                  </p>
+              {/* Sample Craft Quick Pickers */}
+              <div className="space-y-1.5 pt-1">
+                <span className="text-[11px] font-bold text-[#8C7355] block">
+                  {language === 'hi' ? 'या तुरंत परीक्षण के लिए नमूना शिल्प चुनें:' : 'Or pick a 1-click sample craft:'}
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {SAMPLE_CRAFT_PHOTOS.map((sample) => (
+                    <button
+                      key={sample.id}
+                      type="button"
+                      onClick={() => handleSelectSampleCraft(sample)}
+                      className={`p-2 rounded-xl text-left border transition-all flex flex-col items-center text-center cursor-pointer ${
+                        originalPhoto === sample.url
+                          ? 'bg-[#FAF6F0] border-[#8B5E34] ring-2 ring-[#8B5E34]/30'
+                          : 'bg-white border-[#E6D5C3] hover:border-[#8B5E34]'
+                      }`}
+                    >
+                      <img src={sample.url} alt={sample.label} className="w-12 h-12 rounded-lg object-cover mb-1 shadow-2xs" />
+                      <span className="text-[10px] font-bold text-[#3E2723] line-clamp-1">
+                        {language === 'hi' ? sample.labelHi : sample.label}
+                      </span>
+                    </button>
+                  ))}
                 </div>
+              </div>
+            </div>
 
-                {/* Craft Specs Breakdown */}
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2.5 bg-white border border-[#E6D5C3] rounded-xl">
-                    <span className="text-[10px] text-[#8C7355] block font-bold uppercase">
-                      {language === 'hi' ? 'सामग्री (Materials)' : 'Materials Used'}
-                    </span>
-                    <span className="font-semibold text-[#3E2723] block truncate">{generatedProduct.materials}</span>
-                  </div>
+            {/* 2. PRODUCT NAME */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#3E2723] uppercase tracking-wider flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-[#8B5E34] text-white flex items-center justify-center text-[10px]">2</span>
+                <span>{language === 'hi' ? 'उत्पाद का नाम *' : 'Product Name *'}</span>
+              </label>
+              <input
+                type="text"
+                value={productName}
+                onChange={(e) => {
+                  setProductName(e.target.value);
+                  if (validationError) setValidationError('');
+                }}
+                placeholder={
+                  language === 'hi'
+                    ? 'उदा. टेराकोटा मिट्टी का फूलदान या कश्मीरी पश्मीना शॉल'
+                    : 'e.g. Terracotta Water Pitcher or Handwoven Pashmina Stole'
+                }
+                className="w-full px-4 py-3 text-sm bg-white border border-[#E6D5C3] rounded-2xl focus:ring-2 focus:ring-[#8B5E34] text-[#3E2723] font-semibold"
+              />
+            </div>
 
-                  <div className="p-2.5 bg-white border border-[#E6D5C3] rounded-xl">
-                    <span className="text-[10px] text-[#8C7355] block font-bold uppercase">
-                      {language === 'hi' ? 'शिल्प तकनीक (Technique)' : 'Craft Technique'}
-                    </span>
-                    <span className="font-semibold text-[#3E2723] block truncate">{generatedProduct.craftTechnique}</span>
-                  </div>
-                </div>
+            {/* 3. MATERIALS USED */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[#3E2723] uppercase tracking-wider flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-[#8B5E34] text-white flex items-center justify-center text-[10px]">3</span>
+                <span>{language === 'hi' ? 'उपयोग की गई सामग्री (Materials Used) *' : 'Materials Used *'}</span>
+              </label>
+              <input
+                type="text"
+                value={materials}
+                onChange={(e) => {
+                  setMaterials(e.target.value);
+                  if (validationError) setValidationError('');
+                }}
+                placeholder={
+                  language === 'hi'
+                    ? 'उदा. प्राकृतिक नदी की मिट्टी, जैविक रंग, धुआं पॉलिश'
+                    : 'e.g. Natural riverbed clay, organic mineral slip, smoke burnishing'
+                }
+                className="w-full px-4 py-3 text-sm bg-white border border-[#E6D5C3] rounded-2xl focus:ring-2 focus:ring-[#8B5E34] text-[#3E2723] font-semibold"
+              />
 
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {generatedProduct.tags?.map((t, idx) => (
-                    <span key={idx} className="text-[10px] font-semibold bg-[#FAF6F0] text-[#8B5E34] border border-[#E6D5C3] px-2.5 py-0.5 rounded-full">
-                      #{t}
-                    </span>
+              {/* Quick 1-Tap Material Pills */}
+              <div className="space-y-1">
+                <span className="text-[10px] text-[#8C7355] block">
+                  {language === 'hi' ? '💡 त्वरित चयन के लिए सामग्री पर क्लिक करें:' : '💡 1-tap quick suggestions to add:'}
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {POPULAR_MATERIALS.map((mat, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectMaterialPill(mat)}
+                      className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                        materials.includes(mat)
+                          ? 'bg-[#8B5E34] text-white border-[#8B5E34]'
+                          : 'bg-[#FAF9F7] text-[#6D5843] border-[#E6D5C3] hover:border-[#8B5E34]'
+                      }`}
+                    >
+                      + {mat}
+                    </button>
                   ))}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* =====================================================================
-              SATISFACTION DECISION CARD (As requested by user)
-              ===================================================================== */}
+          {/* Action Footer */}
+          <div className="pt-6 border-t border-[#E6D5C3] flex flex-wrap items-center justify-between gap-4 max-w-2xl mx-auto">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-5 py-2.5 text-xs font-semibold text-[#8C7355] hover:text-[#3E2723] hover:bg-[#FAF9F7] rounded-xl transition-all cursor-pointer"
+            >
+              ← Cancel to Dashboard
+            </button>
+
+            <button
+              type="button"
+              onClick={start30SecondCreation}
+              className="px-8 py-3.5 bg-[#244238] hover:bg-[#1A3129] text-white font-bold text-sm rounded-2xl shadow-md transition-all hover:scale-105 active:scale-95 flex items-center gap-2 border border-[#3E5C51] cursor-pointer"
+            >
+              <Zap className="w-4 h-4 text-[#D8962B] fill-current" />
+              <span>
+                {language === 'hi' ? '⚡ ३० सेकंड में लिस्टिंग बनाएं' : '⚡ Start 30-Second AI Creation'}
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          STAGE 2: 30-SECOND COUNTDOWN & PROCESSING
+          ========================================================================= */}
+      {workflowState === 'processing' && (
+        <div className="p-8 sm:p-12 bg-white border border-[#E6D5C3] rounded-3xl shadow-md text-center space-y-8 max-w-xl mx-auto">
+          {/* Animated 30s Countdown Ring */}
+          <div className="relative w-36 h-36 mx-auto flex items-center justify-center">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" stroke="#FAF6F0" strokeWidth="8" fill="none" />
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                stroke="#8B5E34"
+                strokeWidth="8"
+                strokeDasharray="264"
+                strokeDashoffset={264 - (Math.min(timerSeconds, 30) / 30) * 264}
+                strokeLinecap="round"
+                fill="none"
+                className="transition-all duration-1000 ease-linear"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-3xl font-serif font-bold text-[#3E2723]">
+                {Math.max(0, 30 - timerSeconds)}s
+              </span>
+              <span className="text-[10px] uppercase font-bold text-[#8B5E34] tracking-wider">
+                {language === 'hi' ? 'शेष समय' : 'Remaining'}
+              </span>
+            </div>
+          </div>
+
+          {/* Dynamic Stage Message */}
+          <div className="space-y-2">
+            <h3 className="text-lg sm:text-xl font-serif font-bold text-[#3E2723] animate-pulse">
+              {processingStage}
+            </h3>
+            <p className="text-xs text-[#8C7355]">
+              {language === 'hi'
+                ? `AI आपके "${productName}" और "${materials}" के आधार पर विवरण, टैग व मूल्य तैयार कर रहा है।`
+                : `AI is generating descriptions, tags, and fair trade pricing using "${productName}" and "${materials}".`}
+            </p>
+          </div>
+
+          {/* Micro Progress Checklist */}
+          <div className="p-4 bg-[#FAF9F7] border border-[#E6D5C3] rounded-2xl space-y-2.5 text-xs text-left max-w-md mx-auto">
+            <div className="flex items-center gap-2.5">
+              <CheckCircle2
+                className={`w-4 h-4 ${timerSeconds >= 5 ? 'text-green-600' : 'text-[#8C7355]'}`}
+              />
+              <span className={timerSeconds >= 5 ? 'text-[#3E2723] font-bold' : 'text-[#8C7355]'}>
+                1. Studio Lighting & Background Enhancement
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <CheckCircle2
+                className={`w-4 h-4 ${timerSeconds >= 12 ? 'text-green-600' : 'text-[#8C7355]'}`}
+              />
+              <span className={timerSeconds >= 12 ? 'text-[#3E2723] font-bold' : 'text-[#8C7355]'}>
+                2. Analyzing Craft Technique & Materials
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <CheckCircle2
+                className={`w-4 h-4 ${timerSeconds >= 20 ? 'text-green-600' : 'text-[#8C7355]'}`}
+              />
+              <span className={timerSeconds >= 20 ? 'text-[#3E2723] font-bold' : 'text-[#8C7355]'}>
+                3. Bilingual Descriptions (English & Hindi)
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <CheckCircle2
+                className={`w-4 h-4 ${timerSeconds >= 27 ? 'text-green-600' : 'text-[#8C7355]'}`}
+              />
+              <span className={timerSeconds >= 27 ? 'text-[#3E2723] font-bold' : 'text-[#8C7355]'}>
+                4. Fair Trade Artisan Wage & Price Recommendation
+              </span>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                clearInterval(timerIntervalRef.current);
+                setWorkflowState('upload');
+              }}
+              className="text-xs text-[#8C7355] hover:text-[#3E2723] underline cursor-pointer"
+            >
+              Cancel & Return to Form
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          STAGE 3: ARTISAN REVIEW BEFORE PUBLISHING
+          ========================================================================= */}
+      {workflowState === 'review' && generatedProduct && (
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="p-6 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span className="text-xs uppercase font-bold text-[#8B5E34] tracking-wider block">
+                {language === 'hi' ? 'समीक्षा व अनुमोदन' : 'Review Before Publishing'}
+              </span>
+              <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#3E2723]">
+                {language === 'hi' ? '✨ आपकी उत्पाद लिस्टिंग ३० सेकंड में तैयार है!' : '✨ Your Product Listing is Ready!'}
+              </h2>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setWorkflowState('upload')}
+                className="px-4 py-2 bg-[#FAF9F7] hover:bg-[#F5F1EE] text-[#3E2723] text-xs font-bold rounded-xl border border-[#E6D5C3] transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>{language === 'hi' ? 'इनपुट बदलें' : 'Back / Change Inputs'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-4 py-2 text-xs font-semibold text-[#8C7355] hover:text-[#3E2723] transition-colors cursor-pointer"
+              >
+                {language === 'hi' ? 'डैशबोर्ड' : 'Exit'}
+              </button>
+            </div>
+          </div>
+
+          {/* Two-Column Comparison & Data Preview */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Column 1: Enhanced Studio Photo with Original Toggle */}
+            <div className="p-6 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#3E2723] uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-[#D8962B]" />
+                  {showOriginalComparison ? 'Original Uploaded Photo' : 'Studio Enhanced Photo'}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setShowOriginalComparison(!showOriginalComparison)}
+                  className="px-3 py-1 bg-[#FAF9F7] hover:bg-[#F5F1EE] border border-[#E6D5C3] text-[11px] font-bold text-[#8B5E34] rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  {showOriginalComparison ? 'View Enhanced Photo' : 'Compare Original Photo'}
+                </button>
+              </div>
+
+              <div className="aspect-square rounded-2xl overflow-hidden bg-[#FAF9F7] border border-[#E6D5C3] relative shadow-inner">
+                <img
+                  src={showOriginalComparison ? originalPhoto : enhancedPhoto || originalPhoto}
+                  alt={generatedProduct.name}
+                  className="w-full h-full object-cover transition-all duration-300"
+                />
+
+                <div className="absolute top-3 left-3 px-3 py-1 bg-black/70 backdrop-blur-xs text-white text-[11px] font-bold rounded-full">
+                  {showOriginalComparison ? 'Original Camera Shot' : '✨ Studio Lighting Enhanced'}
+                </div>
+              </div>
+
+              <p className="text-[11px] text-[#8C7355] text-center">
+                {language === 'hi'
+                  ? 'फोटो का कोई भी वास्तविक विवरण नहीं बदला गया है — केवल प्रकाश, कंट्रास्ट और स्पष्टता को निखारा गया है।'
+                  : 'Zero authentic craft details altered — only optical exposure and contrast tuned.'}
+              </p>
+            </div>
+
+            {/* Column 2: AI Generated Details (Bilingual & Pricing) */}
+            <div className="p-6 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs space-y-5">
+              <div className="space-y-2">
+                <span className="px-2.5 py-0.5 bg-[#FAF6F0] text-[#8B5E34] border border-[#E6D5C3] text-[10px] font-bold uppercase rounded-full">
+                  {generatedProduct.category}
+                </span>
+
+                <h3 className="text-xl font-serif font-bold text-[#3E2723]">
+                  {generatedProduct.name}
+                </h3>
+
+                <p className="text-xs text-[#8C7355]">
+                  By {artisanProfile.name} · {artisanProfile.location}
+                </p>
+              </div>
+
+              {/* Price Benchmarking & Slider */}
+              <div className="p-4 bg-[#FAF9F7] border border-[#E6D5C3] rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs uppercase font-bold text-[#8B5E34] flex items-center gap-1">
+                    <IndianRupee className="w-3.5 h-3.5" /> Fair Retail Price
+                  </span>
+                  <span className="text-xs font-mono font-bold text-[#8C7355]">
+                    AI Range: ₹{generatedProduct.minPrice?.toLocaleString('en-IN')} – ₹
+                    {generatedProduct.maxPrice?.toLocaleString('en-IN')}
+                  </span>
+                </div>
+
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-serif font-bold text-[#3E2723]">
+                    ₹{editablePrice.toLocaleString('en-IN')}
+                  </span>
+                  <span className="text-xs text-green-700 font-bold bg-green-50 px-2 py-0.5 rounded-md border border-green-200">
+                    100% to your UPI ID ({artisanProfile.upiId})
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[11px] text-[#8C7355]">
+                    <span>Adjust Price:</span>
+                    <span>₹{editablePrice}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={Math.max(500, Math.round((generatedProduct.minPrice || 1000) * 0.7))}
+                    max={Math.round((generatedProduct.maxPrice || 2500) * 1.3)}
+                    step={50}
+                    value={editablePrice}
+                    onChange={(e) => setEditablePrice(Number(e.target.value))}
+                    className="w-full accent-[#8B5E34] cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Bilingual Description with Tabs */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between border-b border-[#E6D5C3] pb-1.5">
+                  <span className="text-xs font-bold text-[#3E2723]">Description</span>
+                  <div className="flex items-center gap-1 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setActiveDescLang('en')}
+                      className={`px-2 py-0.5 rounded-md font-bold transition-colors cursor-pointer ${
+                        activeDescLang === 'en' ? 'bg-[#8B5E34] text-white' : 'text-[#6D5843] hover:bg-[#FAF9F7]'
+                      }`}
+                    >
+                      English
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveDescLang('hi')}
+                      className={`px-2 py-0.5 rounded-md font-bold transition-colors cursor-pointer ${
+                        activeDescLang === 'hi' ? 'bg-[#8B5E34] text-white' : 'text-[#6D5843] hover:bg-[#FAF9F7]'
+                      }`}
+                    >
+                      हिंदी (Hindi)
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-xs text-[#5D4037] leading-relaxed p-3 bg-[#FAF9F7] rounded-xl border border-[#E6D5C3]/70">
+                  {activeDescLang === 'en'
+                    ? generatedProduct.descriptionEnglish
+                    : generatedProduct.descriptionHindi}
+                </p>
+              </div>
+
+              {/* Craft Specs Breakdown */}
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="p-2.5 bg-white border border-[#E6D5C3] rounded-xl">
+                  <span className="text-[10px] text-[#8C7355] block font-bold uppercase">
+                    Materials Used
+                  </span>
+                  <span className="font-semibold text-[#3E2723] block truncate">
+                    {generatedProduct.materials}
+                  </span>
+                </div>
+
+                <div className="p-2.5 bg-white border border-[#E6D5C3] rounded-xl">
+                  <span className="text-[10px] text-[#8C7355] block font-bold uppercase">
+                    Craft Technique
+                  </span>
+                  <span className="font-semibold text-[#3E2723] block truncate">
+                    {generatedProduct.craftTechnique}
+                  </span>
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {generatedProduct.tags?.map((t, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[10px] font-semibold bg-[#FAF6F0] text-[#8B5E34] border border-[#E6D5C3] px-2.5 py-0.5 rounded-full"
+                  >
+                    #{t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Satisfaction Decision Card */}
           <div className="p-6 sm:p-8 bg-gradient-to-br from-[#FAF6F0] via-[#FAF9F7] to-[#F5EFE6] border-2 border-[#8B5E34] rounded-3xl shadow-md text-center space-y-6">
             <div className="max-w-md mx-auto space-y-2">
               <span className="text-xs uppercase font-bold text-[#8B5E34] tracking-widest block">
@@ -716,7 +1056,6 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
               </p>
             </div>
 
-            {/* YES vs NO Decision Buttons */}
             <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
               {/* YES -> Publish Product */}
               <button
@@ -730,7 +1069,7 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
                 </span>
               </button>
 
-              {/* NO -> Edit / Regenerate */}
+              {/* NO -> Regenerate or Edit */}
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -740,7 +1079,7 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
                 >
                   <RefreshCw className={`w-4 h-4 text-[#8B5E34] ${isRegenerating ? 'animate-spin' : ''}`} />
                   <span>
-                    {language === 'hi' ? '🔄 दोबारा बनाएं (Regenerate)' : 'NO, Regenerate with AI'}
+                    {language === 'hi' ? '🔄 दोबारा बनाएं' : 'NO, Regenerate with AI'}
                   </span>
                 </button>
 
@@ -751,7 +1090,7 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
                 >
                   <Edit3 className="w-4 h-4" />
                   <span>
-                    {language === 'hi' ? '✏️ सुधारें (Edit in Full Editor)' : 'NO, Edit in Full Editor'}
+                    {language === 'hi' ? '✏️ सुधारें (Full Editor)' : 'NO, Edit in Full Editor'}
                   </span>
                 </button>
               </div>
@@ -775,7 +1114,7 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
             </h2>
             <p className="text-xs text-[#8C7355]">
               {language === 'hi'
-                ? `"${generatedProduct?.name}" अब कलाकृति स्टोर पर उपलब्ध है। ग्राहक सीधे आपके UPI (${artisanProfile.upiId}) पर भुगतान करके ऑर्डर दे सकते हैं।`
+                ? `"${generatedProduct?.name}" अब कलाकृति स्टोर पर उपलब्ध है। ग्राहक सीधे आपके UPI (${artisanProfile.upiId}) पर भुगतान कर सकते हैं।`
                 : `"${generatedProduct?.name}" is now live in the store. Customers can place orders with direct UPI payments to ${artisanProfile.upiId}.`}
             </p>
           </div>
@@ -802,9 +1141,11 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
                 setWorkflowState('upload');
                 setOriginalPhoto('');
                 setEnhancedPhoto('');
+                setProductName('');
+                setMaterials('');
                 setGeneratedProduct(null);
               }}
-              className="px-6 py-3 bg-[#8B5E34] hover:bg-[#734B26] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-[#8B5E34] hover:bg-[#734B26] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer"
             >
               <Sparkles className="w-4 h-4 text-[#D8962B]" />
               {language === 'hi' ? '✨ दूसरा उत्पाद ३० सेकंड में जोड़ें' : '✨ Add Another in 30 Seconds'}
@@ -813,7 +1154,7 @@ export const ProductReadyIn30Seconds: React.FC<ProductReadyIn30SecondsProps> = (
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-3 bg-[#FAF9F7] hover:bg-[#F5F1EE] border border-[#E6D5C3] text-[#3E2723] font-bold text-xs rounded-xl transition-all"
+              className="px-6 py-3 bg-[#FAF9F7] hover:bg-[#F5F1EE] border border-[#E6D5C3] text-[#3E2723] font-bold text-xs rounded-xl transition-all cursor-pointer"
             >
               {language === 'hi' ? 'डैशबोर्ड पर जाएं' : 'Go to Dashboard'}
             </button>

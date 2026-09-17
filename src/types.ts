@@ -1,5 +1,19 @@
 export type Role = 'artisan' | 'customer' | 'b2b' | 'admin' | 'catalog';
 
+export type CustomerType = 'individual' | 'b2b';
+
+export interface AuthSession {
+  isAuthenticated: boolean;
+  role: 'artisan' | 'customer';
+  customerType?: CustomerType;
+  userId: string;
+  userName: string;
+  userEmail?: string;
+  userPhone?: string;
+  avatar?: string;
+  loginTime: number;
+}
+
 export type ProductCategory = 
   | 'Textiles & Weaving'
   | 'Pottery & Ceramics'
@@ -50,6 +64,8 @@ export interface ArtisanProfile {
   bio: string;
   story?: string;
   photo?: string;
+  voiceStoryAudio?: string;
+  voiceStoryLanguage?: string;
   verified?: boolean;
   upiId: string;
   followers?: number;
@@ -188,5 +204,32 @@ export interface ChatMessage {
   text: string;
   timestamp: number;
   quickActions?: { label: string; action: string }[];
+}
+
+export interface CustomizationRequest {
+  id: string;
+  productId: string;
+  productName: string;
+  productCategory: ProductCategory;
+  productPrice: number;
+  productEmoji: string;
+  productImage?: string | null;
+  artisanId: string;
+  artisanName: string;
+  artisanLocation?: string;
+  customerId?: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  color: string;
+  pattern: string;
+  size: string;
+  message: string;
+  status: 'Pending' | 'Accepted' | 'Declined';
+  artisanResponse?: string;
+  estimatedDays?: number;
+  estimatedPrice?: number;
+  createdAt: number;
+  updatedAt?: number;
 }
 

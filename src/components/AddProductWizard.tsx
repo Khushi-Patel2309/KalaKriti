@@ -1,14 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product, ProductCategory, ArtisanProfile } from '../types';
 import { PhotoEnhancerStudio } from './PhotoEnhancerStudio';
 import { VoiceRecorderModal } from './VoiceRecorderModal';
-import { Camera, Mic, Sparkles, Check, ArrowRight, ArrowLeft, RefreshCw, IndianRupee, Tag, AlertCircle, Upload, Eye, Zap } from 'lucide-react';
+import {
+  Upload,
+  Mic,
+  Sparkles,
+  Check,
+  RefreshCw,
+  IndianRupee,
+  ArrowRight,
+  Sliders,
+  AlertCircle,
+  HelpCircle,
+  Zap,
+} from 'lucide-react';
 
 interface AddProductWizardProps {
-  onProductPublished: (product: Product) => void;
-  onCancel: () => void;
   artisanProfile: ArtisanProfile;
   initialProductToEdit?: Product | null;
+  onProductPublished: (product: Product) => void;
+  onCancel: () => void;
   onSwitchTo30Seconds?: () => void;
 }
 
@@ -23,40 +35,142 @@ const CATEGORIES: ProductCategory[] = [
 ];
 
 export const AddProductWizard: React.FC<AddProductWizardProps> = ({
-  onProductPublished,
-  onCancel,
   artisanProfile,
   initialProductToEdit,
+  onProductPublished,
+  onCancel,
   onSwitchTo30Seconds,
 }) => {
-  const [step, setStep] = useState<number>(1);
-  const [originalPhoto, setOriginalPhoto] = useState<string>(initialProductToEdit?.imageOriginal || initialProductToEdit?.imageEnhanced || '');
-  const [enhancedPhoto, setEnhancedPhoto] = useState<string | null>(initialProductToEdit?.imageEnhanced || null);
-  const [enhanceMode, setEnhanceMode] = useState<'removebg' | 'studio' | 'none'>(initialProductToEdit?.enhanceMode || 'studio');
+  // Read existing draft from sessionStorage to survive page refresh safely
+  const getInitialDraft = () => {
+    if (initialProductToEdit) return null;
+    try {
+      const saved = sessionStorage.getItem('kalakriti_wizard_draft');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  };
 
-  const [voiceText, setVoiceText] = useState(initialProductToEdit?.descriptionEnglish || '');
+  const draft = getInitialDraft();
+
+  const [step, setStep] = useState<number>(draft?.step || 1);
+  const [maxVisitedStep, setMaxVisitedStep] = useState<number>(draft?.maxVisitedStep || 1);
+  const [originalPhoto, setOriginalPhoto] = useState<string>(
+    initialProductToEdit?.imageOriginal || initialProductToEdit?.imageEnhanced || draft?.originalPhoto || ''
+  );
+  const [enhancedPhoto, setEnhancedPhoto] = useState<string | null>(
+    initialProductToEdit?.imageEnhanced || draft?.enhancedPhoto || null
+  );
+  const [enhanceMode, setEnhanceMode] = useState<'removebg' | 'studio' | 'none'>(
+    initialProductToEdit?.enhanceMode || draft?.enhanceMode || 'studio'
+  );
+
+  const [voiceText, setVoiceText] = useState(
+    initialProductToEdit?.descriptionEnglish || draft?.voiceText || ''
+  );
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [isGeneratingListing, setIsGeneratingListing] = useState(false);
+  const [step3Error, setStep3Error] = useState<string>('');
 
   // Form Fields
-  const [name, setName] = useState(initialProductToEdit?.name || '');
-  const [category, setCategory] = useState<ProductCategory>(initialProductToEdit?.category || 'Textiles & Weaving');
-  const [materials, setMaterials] = useState(initialProductToEdit?.materials || '');
-  const [color, setColor] = useState(initialProductToEdit?.color || '');
-  const [craftTechnique, setCraftTechnique] = useState(initialProductToEdit?.craftTechnique || '');
-  const [descriptionEnglish, setDescriptionEnglish] = useState(initialProductToEdit?.descriptionEnglish || '');
-  const [descriptionHindi, setDescriptionHindi] = useState(initialProductToEdit?.descriptionHindi || '');
-  const [tags, setTags] = useState<string[]>(initialProductToEdit?.tags || ['handmade', 'artisan-crafted']);
+  const [name, setName] = useState(initialProductToEdit?.name || draft?.name || '');
+  const [category, setCategory] = useState<ProductCategory>(
+    initialProductToEdit?.category || draft?.category || 'Textiles & Weaving'
+  );
+  const [materials, setMaterials] = useState(initialProductToEdit?.materials || draft?.materials || '');
+  const [color, setColor] = useState(initialProductToEdit?.color || draft?.color || '');
+  const [craftTechnique, setCraftTechnique] = useState(
+    initialProductToEdit?.craftTechnique || draft?.craftTechnique || ''
+  );
+  const [descriptionEnglish, setDescriptionEnglish] = useState(
+    initialProductToEdit?.descriptionEnglish || draft?.descriptionEnglish || ''
+  );
+  const [descriptionHindi, setDescriptionHindi] = useState(
+    initialProductToEdit?.descriptionHindi || draft?.descriptionHindi || ''
+  );
+  const [tags, setTags] = useState<string[]>(
+    initialProductToEdit?.tags || draft?.tags || ['handmade', 'artisan-crafted']
+  );
   const [tagInput, setTagInput] = useState('');
-  const [quantity, setQuantity] = useState<number>(initialProductToEdit?.quantity || 5);
+  const [quantity, setQuantity] = useState<number>(initialProductToEdit?.quantity || draft?.quantity || 5);
 
   // Pricing Fields
-  const [price, setPrice] = useState<number>(initialProductToEdit?.price || 1450);
-  const [suggestedPrice, setSuggestedPrice] = useState<number>(initialProductToEdit?.suggestedPrice || 1450);
-  const [minPrice, setMinPrice] = useState<number>(initialProductToEdit?.minPrice || 1100);
-  const [maxPrice, setMaxPrice] = useState<number>(initialProductToEdit?.maxPrice || 1850);
-  const [pricingReasoning, setPricingReasoning] = useState<string>('Fair artisan price benchmarked for handcrafted quality.');
+  const [price, setPrice] = useState<number>(initialProductToEdit?.price || draft?.price || 1450);
+  const [suggestedPrice, setSuggestedPrice] = useState<number>(
+    initialProductToEdit?.suggestedPrice || draft?.suggestedPrice || 1450
+  );
+  const [minPrice, setMinPrice] = useState<number>(
+    initialProductToEdit?.minPrice || draft?.minPrice || 1100
+  );
+  const [maxPrice, setMaxPrice] = useState<number>(
+    initialProductToEdit?.maxPrice || draft?.maxPrice || 1850
+  );
+  const [pricingReasoning, setPricingReasoning] = useState<string>(
+    draft?.pricingReasoning || 'Fair artisan price benchmarked for handcrafted quality.'
+  );
   const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
+
+  // Update max visited step
+  useEffect(() => {
+    if (step > maxVisitedStep) {
+      setMaxVisitedStep(step);
+    }
+  }, [step, maxVisitedStep]);
+
+  // Persist draft to sessionStorage
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(
+        'kalakriti_wizard_draft',
+        JSON.stringify({
+          step,
+          maxVisitedStep,
+          originalPhoto,
+          enhancedPhoto,
+          enhanceMode,
+          voiceText,
+          name,
+          category,
+          materials,
+          color,
+          craftTechnique,
+          descriptionEnglish,
+          descriptionHindi,
+          tags,
+          quantity,
+          price,
+          suggestedPrice,
+          minPrice,
+          maxPrice,
+          pricingReasoning,
+        })
+      );
+    } catch {
+      // Ignore sessionStorage issues
+    }
+  }, [
+    step,
+    maxVisitedStep,
+    originalPhoto,
+    enhancedPhoto,
+    enhanceMode,
+    voiceText,
+    name,
+    category,
+    materials,
+    color,
+    craftTechnique,
+    descriptionEnglish,
+    descriptionHindi,
+    tags,
+    quantity,
+    price,
+    suggestedPrice,
+    minPrice,
+    maxPrice,
+    pricingReasoning,
+  ]);
 
   // Handle Photo File Upload
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,9 +189,10 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
   // AI Generate Listing API Call
   const handleGenerateListing = async () => {
     if (!voiceText.trim()) {
-      alert('Please speak or type a short description of your product first.');
+      setStep3Error('Please enter or speak a description of your craft first, or click "Continue to Next Step (Manual Entry)".');
       return;
     }
+    setStep3Error('');
     setIsGeneratingListing(true);
 
     try {
@@ -90,6 +205,10 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
         }),
       });
 
+      if (!res.ok) {
+        throw new Error('AI service was temporarily unavailable.');
+      }
+
       const data = await res.json();
       if (data.name) setName(data.name);
       if (data.category && CATEGORIES.includes(data.category)) setCategory(data.category);
@@ -101,12 +220,14 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
       if (data.tags && Array.isArray(data.tags)) setTags(data.tags);
 
       setStep(4); // Move to Review
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error generating listing:', err);
-      // Fallback
-      setName(voiceText.slice(0, 45));
-      setDescriptionEnglish(voiceText);
-      setStep(4);
+      setStep3Error(
+        err.message || 'Unable to connect to AI listing generator. You can retry or proceed directly to enter details manually.'
+      );
+      // Populate basic values so progress is preserved
+      if (!name) setName(voiceText.slice(0, 45));
+      if (!descriptionEnglish) setDescriptionEnglish(voiceText);
     } finally {
       setIsGeneratingListing(false);
     }
@@ -120,11 +241,10 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name,
           category,
           materials,
           craftTechnique,
-          description: descriptionEnglish,
+          name,
         }),
       });
 
@@ -132,17 +252,23 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
       if (data.suggestedPrice) {
         setSuggestedPrice(data.suggestedPrice);
         setPrice(data.suggestedPrice);
-        setMinPrice(data.minPrice || Math.round(data.suggestedPrice * 0.75));
-        setMaxPrice(data.maxPrice || Math.round(data.suggestedPrice * 1.25));
-        setPricingReasoning(data.reasoning || 'Fair trade artisan labor estimate.');
       }
+      if (data.minPrice) setMinPrice(data.minPrice);
+      if (data.maxPrice) setMaxPrice(data.maxPrice);
+      if (data.reasoning) setPricingReasoning(data.reasoning);
     } catch (err) {
-      console.error('Error getting price:', err);
+      console.error('Error fetching price suggestion:', err);
+      // Fallback sensible defaults
+      setSuggestedPrice(1450);
+      setMinPrice(1100);
+      setMaxPrice(1850);
+      setPricingReasoning('Fair trade artisan price benchmarked for handmade authentic quality.');
     } finally {
       setIsCalculatingPrice(false);
     }
   };
 
+  // Tag helper
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim().toLowerCase())) {
       setTags([...tags, tagInput.trim().toLowerCase()]);
@@ -154,49 +280,30 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
     setTags(tags.filter((t) => t !== tagToRemove));
   };
 
+  // Publish Product Handler
   const handlePublish = () => {
-    if (!name.trim()) {
-      alert('Please enter a product title.');
-      setStep(4);
-      return;
-    }
-    if (price <= 0) {
-      alert('Please enter a valid selling price greater than ₹0.');
-      return;
-    }
-
-    const categoryEmojis: Record<string, string> = {
-      'Textiles & Weaving': '🧵',
-      'Pottery & Ceramics': '🏺',
-      'Jewelry': '💍',
-      'Woodwork': '🪵',
-      'Metalwork': '⚒️',
-      'Home Decor': '🏠',
-      'Paintings & Art': '🎨',
-    };
-
     const newProduct: Product = {
       id: initialProductToEdit?.id || 'prod_' + Date.now(),
-      name: name.trim(),
+      name: name || 'Handcrafted Heritage Item',
       category,
-      materials: materials.trim() || 'Natural materials',
-      color: color.trim() || 'Traditional colors',
-      craftTechnique: craftTechnique.trim() || 'Handmade',
-      descriptionEnglish: descriptionEnglish.trim() || voiceText || 'Handcrafted by Indian artisan.',
-      descriptionHindi: descriptionHindi.trim() || 'कारीगर द्वारा हस्तनिर्मित।',
-      tags: tags.length > 0 ? tags : ['handmade', 'kalakriti'],
+      materials: materials || 'Authentic natural materials',
+      color: color || 'Natural earth tones',
+      craftTechnique: craftTechnique || 'Traditional Indian Handcraft',
+      descriptionEnglish: descriptionEnglish || 'Exquisitely handcrafted by master artisan.',
+      descriptionHindi: descriptionHindi || 'मास्टर कारीगर द्वारा पारंपरिक विरासत तकनीकों से निर्मित हस्तशिल्प।',
+      tags,
       price,
       oldPrice: Math.round(price * 1.25),
       suggestedPrice,
       minPrice,
       maxPrice,
-      quantity: Math.max(1, quantity),
+      quantity,
       status: 'published',
-      emoji: categoryEmojis[category] || '🎁',
+      emoji: '🪷',
       views: initialProductToEdit?.views || 0,
       sold: initialProductToEdit?.sold || 0,
-      imageOriginal: originalPhoto || null,
-      imageEnhanced: enhancedPhoto || originalPhoto || null,
+      imageOriginal: originalPhoto,
+      imageEnhanced: enhancedPhoto || originalPhoto,
       enhanceMode,
       artisanId: artisanProfile.id,
       artisanName: artisanProfile.name,
@@ -204,47 +311,74 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
       createdAt: initialProductToEdit?.createdAt || Date.now(),
     };
 
+    sessionStorage.removeItem('kalakriti_wizard_draft');
     onProductPublished(newProduct);
+  };
+
+  const handleSafeCancel = () => {
+    sessionStorage.removeItem('kalakriti_wizard_draft');
+    onCancel();
   };
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Stepper Progress Header */}
+      {/* Wizard Header & Stepper */}
       <div className="p-6 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-xs uppercase tracking-wider font-bold text-[#8B5E34]">
-              Artisan Catalog Creator
+            <span className="text-xs uppercase tracking-wider font-bold text-[#8B5E34] block">
+              KalaKriti Artisan Studio
             </span>
-            <h2 className="text-xl font-bold font-serif text-[#3E2723]">
-              {initialProductToEdit ? 'Edit Product Listing' : 'Add New Handmade Product'}
+            <h2 className="text-xl sm:text-2xl font-bold font-serif text-[#3E2723]">
+              {initialProductToEdit ? 'Edit Product Listing' : 'Add New Craft to Marketplace'}
             </h2>
           </div>
-          <span className="text-xs font-bold text-[#8B5E34] bg-[#F5F1EE] border border-[#E6D5C3] px-3 py-1 rounded-full">
-            Step {step} of 5
-          </span>
+          <button
+            type="button"
+            onClick={handleSafeCancel}
+            className="text-xs font-semibold text-[#8C7355] hover:text-[#3E2723] px-3 py-1.5 rounded-lg hover:bg-[#FAF9F7] transition-colors cursor-pointer"
+          >
+            Exit to Dashboard
+          </button>
         </div>
 
-        {/* Progress Bar */}
-        <div className="grid grid-cols-5 gap-2">
+        {/* Dynamic Progress Stepper Bar with safe navigation clicks */}
+        <div className="grid grid-cols-5 gap-2 pt-2">
           {[
             { num: 1, label: '1. Photo' },
-            { num: 2, label: '2. Studio Enhance' },
-            { num: 3, label: '3. Voice Details' },
-            { num: 4, label: '4. AI Listing' },
-            { num: 5, label: '5. Price & Publish' },
-          ].map((s) => (
-            <div key={s.num} className="space-y-1">
-              <div
-                className={`h-1.5 rounded-full transition-all ${
-                  step >= s.num ? 'bg-[#8B5E34]' : 'bg-[#E6D5C3]'
+            { num: 2, label: '2. Studio' },
+            { num: 3, label: '3. Text Identification' },
+            { num: 4, label: '4. Listing Details' },
+            { num: 5, label: '5. Fair Price' },
+          ].map((s) => {
+            const isClickable = s.num <= Math.max(step, maxVisitedStep);
+            return (
+              <button
+                key={s.num}
+                type="button"
+                disabled={!isClickable}
+                onClick={() => {
+                  if (isClickable) setStep(s.num);
+                }}
+                className={`space-y-1 text-left w-full transition-all focus:outline-none ${
+                  isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed opacity-50'
                 }`}
-              />
-              <span className={`text-[10px] font-bold block truncate ${step === s.num ? 'text-[#8B5E34]' : 'text-[#8C7355]'}`}>
-                {s.label}
-              </span>
-            </div>
-          ))}
+              >
+                <div
+                  className={`h-1.5 rounded-full transition-all ${
+                    step >= s.num ? 'bg-[#8B5E34]' : 'bg-[#E6D5C3]'
+                  }`}
+                />
+                <span
+                  className={`text-[10px] font-bold block truncate ${
+                    step === s.num ? 'text-[#8B5E34]' : 'text-[#8C7355]'
+                  }`}
+                >
+                  {s.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -260,10 +394,10 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
                 </div>
                 <div>
                   <span className="text-xs font-bold text-white block">
-                    ✨ Prefer zero typing? Try "Product Ready in 30 Seconds"
+                    ✨ Want 30-Second AI Creation?
                   </span>
                   <span className="text-[11px] text-[#C2D8D0] block">
-                    Upload 1 photo, AI enhances lighting and completes all listing fields automatically in 30s!
+                    Upload 1 photo, name, and materials — AI does the rest in 30s!
                   </span>
                 </div>
               </div>
@@ -279,16 +413,10 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
             </div>
           )}
 
-          <div className="w-16 h-16 rounded-3xl bg-[#F5F1EE] text-[#8B5E34] border border-[#E6D5C3] flex items-center justify-center mx-auto shadow-xs">
-            <Camera className="w-8 h-8" />
-          </div>
-
           <div>
-            <h3 className="text-xl font-bold font-serif text-[#3E2723]">
-              Capture Your Real Product
-            </h3>
+            <h3 className="text-lg font-bold font-serif text-[#3E2723]">Step 1: Upload a Real Craft Photo</h3>
             <p className="text-xs text-[#8C7355] max-w-md mx-auto mt-1">
-              Take a clear picture of your craft under natural light. In the next step, our AI Photo Studio will enhance the lighting and remove the background without changing your real craft.
+              Take a clear picture of your craft under natural light. In the next step, our AI Photo Studio will enhance the lighting without altering your real craft.
             </p>
           </div>
 
@@ -305,7 +433,7 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="px-6 py-2 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl shadow-xs flex items-center gap-1.5"
+                  className="px-6 py-2 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer"
                 >
                   Enhance in Studio <ArrowRight className="w-4 h-4" />
                 </button>
@@ -325,10 +453,10 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
           <div className="flex justify-start pt-4 border-t border-[#E6D5C3]">
             <button
               type="button"
-              onClick={onCancel}
-              className="text-xs font-semibold text-[#8C7355] hover:text-[#3E2723]"
+              onClick={handleSafeCancel}
+              className="text-xs font-semibold text-[#8C7355] hover:text-[#3E2723] cursor-pointer"
             >
-              Cancel
+              Cancel to Dashboard
             </button>
           </div>
         </div>
@@ -343,32 +471,69 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
             onApplyEnhanced={(enhancedUrl, mode) => {
               setEnhancedPhoto(enhancedUrl);
               setEnhanceMode(mode);
-              setStep(3); // Move to Voice Details
+              setStep(3); // Move to Text Identification
             }}
             onCancel={() => setStep(1)}
           />
         </div>
       )}
 
-      {/* STEP 3: Voice-to-Text & Product Description */}
+      {/* STEP 3: Text Identification & Spoken Description */}
       {step === 3 && (
         <div className="p-6 bg-white border border-[#E6D5C3] rounded-3xl shadow-xs space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-[#E6D5C3]">
             <div>
               <h3 className="text-lg font-bold font-serif text-[#3E2723] flex items-center gap-2">
-                <Mic className="w-5 h-5 text-[#8B5E34]" /> Tell Us About Your Craft (Voice or Text)
+                <Mic className="w-5 h-5 text-[#8B5E34]" /> Text Identification & Voice Input
               </h3>
               <p className="text-xs text-[#8C7355]">
-                Speak naturally in Hindi, Gujarati, English, or any Indian language. Our AI converts your voice directly into text!
+                Speak or type naturally in Hindi, Gujarati, English, or any Indian language. Our AI converts your voice directly into text and structures your listing.
               </p>
             </div>
+            <button
+              type="button"
+              onClick={handleSafeCancel}
+              className="text-xs font-semibold text-[#8C7355] hover:text-[#3E2723] px-2.5 py-1 rounded-md hover:bg-[#FAF9F7]"
+            >
+              Exit
+            </button>
           </div>
 
-          <div className="p-6 bg-[#FAF9F7] rounded-2xl border border-[#E6D5C3] text-center space-y-4">
+          {/* Inline Error & Retry Banner if AI encountered an error */}
+          {step3Error && (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-3">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                <div className="text-xs text-amber-900">
+                  <span className="font-bold block">AI Processing Notice</span>
+                  <span>{step3Error}</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 pt-1 pl-7">
+                <button
+                  type="button"
+                  onClick={handleGenerateListing}
+                  className="px-3 py-1.5 bg-[#8B5E34] text-white text-xs font-bold rounded-lg shadow-xs hover:bg-[#734B26] transition-colors cursor-pointer"
+                >
+                  🔄 Retry AI Identification
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep(4)}
+                  className="px-3 py-1.5 bg-white border border-amber-300 text-amber-900 text-xs font-bold rounded-lg hover:bg-amber-100 transition-colors cursor-pointer"
+                >
+                  Continue to Step 4 Manually →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Voice-to-Text Action Card */}
+          <div className="p-6 bg-[#FAF9F7] rounded-2xl border border-[#E6D5C3] text-center space-y-3">
             <button
               type="button"
               onClick={() => setIsVoiceModalOpen(true)}
-              className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#8B5E34] hover:bg-[#734B26] text-white font-bold text-sm rounded-2xl shadow-md transition-all hover:scale-105"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#8B5E34] hover:bg-[#734B26] text-white font-bold text-sm rounded-2xl shadow-md transition-all hover:scale-105 cursor-pointer"
             >
               <Mic className="w-5 h-5" /> 🎙️ Open Voice-to-Text Recorder
             </button>
@@ -377,43 +542,108 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
             </p>
           </div>
 
+          {/* Spoken / Typed Transcript Textarea */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-[#8B5E34] uppercase tracking-wider block">
-              Spoken Description Transcript
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-[#8B5E34] uppercase tracking-wider block">
+                Craft Description & Transcript
+              </label>
+              <span className="text-[11px] text-[#8C7355]">
+                {voiceText.length} characters
+              </span>
+            </div>
             <textarea
               value={voiceText}
-              onChange={(e) => setVoiceText(e.target.value)}
+              onChange={(e) => {
+                setVoiceText(e.target.value);
+                if (step3Error) setStep3Error('');
+              }}
               placeholder="e.g. This is a handwoven Kala cotton dupatta made with organic indigo and madder dyes. It took 14 hours on a traditional pit loom with mirror embroidery..."
               rows={4}
               className="w-full p-3.5 text-xs bg-white border border-[#E6D5C3] rounded-xl focus:ring-2 focus:ring-[#8B5E34] text-[#3E2723]"
             />
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-[#E6D5C3]">
-            <button
-              type="button"
-              onClick={() => setStep(2)}
-              className="px-4 py-2 text-xs font-semibold text-[#8C7355]"
-            >
-              ← Back to Photo Studio
-            </button>
-            <button
-              type="button"
-              onClick={handleGenerateListing}
-              disabled={isGeneratingListing || !voiceText.trim()}
-              className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] disabled:opacity-50 rounded-xl shadow-xs"
-            >
-              {isGeneratingListing ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" /> AI Organising Listing...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 text-white" /> Generate AI Product Listing →
-                </>
-              )}
-            </button>
+          {/* Informational Guidance Notice (Never silently trapping the user) */}
+          {!voiceText.trim() && !step3Error && (
+            <div className="p-3 bg-[#FAF9F7] border border-[#E6D5C3] rounded-xl text-xs text-[#8C7355] flex items-center gap-2">
+              <HelpCircle className="w-4 h-4 text-[#8B5E34] shrink-0" />
+              <span>
+                💡 Speak or type a craft description above to let AI structure your title and tags, or click <strong>"Continue to Step 4 (Manual Entry)"</strong> to enter details manually.
+              </span>
+            </div>
+          )}
+
+          {/* Loading State Banner during AI generation with Cancel option */}
+          {isGeneratingListing && (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-between gap-3 text-xs text-blue-900">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin text-blue-700" />
+                <span>AI is analyzing your craft description, identifying materials, and generating bilingual copy...</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsGeneratingListing(false)}
+                className="px-2.5 py-1 bg-white border border-blue-300 text-blue-800 rounded-lg font-bold hover:bg-blue-100"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {/* Step 3 Navigation Controls */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-[#E6D5C3]">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="px-4 py-2 text-xs font-semibold text-[#8C7355] hover:text-[#3E2723] hover:bg-[#FAF9F7] rounded-xl transition-all cursor-pointer"
+              >
+                ← Previous: Photo Studio
+              </button>
+              <button
+                type="button"
+                onClick={handleSafeCancel}
+                className="px-3 py-2 text-xs font-semibold text-[#8C7355] hover:text-[#3E2723] transition-colors cursor-pointer"
+              >
+                Exit
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Skip AI / Manual Entry is ALWAYS accessible so the artisan is never trapped */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (voiceText.trim() && !descriptionEnglish) {
+                    setDescriptionEnglish(voiceText);
+                    if (!name) setName(voiceText.slice(0, 45));
+                  }
+                  setStep(4);
+                }}
+                className="px-4 py-2.5 text-xs font-bold text-[#8B5E34] bg-[#FAF9F7] hover:bg-[#F5F1EE] border border-[#E6D5C3] rounded-xl transition-colors cursor-pointer"
+              >
+                Skip AI & Enter Manually →
+              </button>
+
+              {/* AI Generation Button */}
+              <button
+                type="button"
+                onClick={handleGenerateListing}
+                disabled={isGeneratingListing}
+                className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] disabled:opacity-50 rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                {isGeneratingListing ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" /> AI Organizing Listing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-white" /> Generate AI Product Listing →
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -424,12 +654,19 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
           <div className="flex items-center justify-between pb-3 border-b border-[#E6D5C3]">
             <div>
               <h3 className="text-lg font-bold font-serif text-[#3E2723] flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#8B5E34]" /> Review Your AI Structured Listing
+                <Sparkles className="w-5 h-5 text-[#8B5E34]" /> Review Your Listing Details
               </h3>
               <p className="text-xs text-[#8C7355]">
-                AI structured your words into a bilingual listing. You can edit any details.
+                Review or edit title, materials, craft technique, and bilingual descriptions.
               </p>
             </div>
+            <button
+              type="button"
+              onClick={handleSafeCancel}
+              className="text-xs font-semibold text-[#8C7355] hover:text-[#3E2723] px-2.5 py-1 rounded-md hover:bg-[#FAF9F7]"
+            >
+              Exit
+            </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -439,8 +676,8 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Kutchi Handwoven Organic Cotton Dupatta"
-                className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl font-semibold text-sm text-[#3E2723]"
+                placeholder="e.g. Handwoven Pashmina Shawl with Sozni Needlework"
+                className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl font-bold text-[#3E2723]"
               />
             </div>
 
@@ -451,49 +688,49 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
                 onChange={(e) => setCategory(e.target.value as ProductCategory)}
                 className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl text-[#3E2723]"
               >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="font-bold text-[#8B5E34] block mb-1">Quantity in Stock *</label>
+              <label className="font-bold text-[#8B5E34] block mb-1">Available Stock / Quantity</label>
               <input
                 type="number"
                 min="1"
                 value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                 className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl text-[#3E2723]"
               />
             </div>
 
             <div>
-              <label className="font-bold text-[#8B5E34] block mb-1">Materials Used</label>
+              <label className="font-bold text-[#8B5E34] block mb-1">Materials Used *</label>
               <input
                 type="text"
                 value={materials}
                 onChange={(e) => setMaterials(e.target.value)}
-                placeholder="e.g. Kala cotton, natural indigo dye"
+                placeholder="e.g. Organic Kala cotton, natural madder and indigo dyes"
                 className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl text-[#3E2723]"
               />
             </div>
 
             <div>
-              <label className="font-bold text-[#8B5E34] block mb-1">Craft Technique</label>
+              <label className="font-bold text-[#8B5E34] block mb-1">Craft Technique / Heritage Lineage</label>
               <input
                 type="text"
                 value={craftTechnique}
                 onChange={(e) => setCraftTechnique(e.target.value)}
-                placeholder="e.g. Pit loom extra-weft weaving"
+                placeholder="e.g. Traditional Pit Loom Weaving"
                 className="w-full p-2.5 bg-white border border-[#E6D5C3] rounded-xl text-[#3E2723]"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="font-bold text-[#8B5E34] block mb-1">English Description (Customer Facing)</label>
+              <label className="font-bold text-[#8B5E34] block mb-1">English Customer Description *</label>
               <textarea
                 value={descriptionEnglish}
                 onChange={(e) => setDescriptionEnglish(e.target.value)}
@@ -522,7 +759,7 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
                     className="text-xs bg-[#FAF9F7] text-[#3E2723] border border-[#E6D5C3] px-2.5 py-1 rounded-lg flex items-center gap-1"
                   >
                     #{t}
-                    <button type="button" onClick={() => handleRemoveTag(t)} className="hover:text-[#8B5E34]">
+                    <button type="button" onClick={() => handleRemoveTag(t)} className="hover:text-[#8B5E34] cursor-pointer">
                       ×
                     </button>
                   </span>
@@ -545,7 +782,7 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
                 <button
                   type="button"
                   onClick={handleAddTag}
-                  className="px-4 py-2 bg-[#FAF9F7] border border-[#E6D5C3] text-[#3E2723] hover:bg-[#F5F1EE] font-bold text-xs rounded-xl"
+                  className="px-4 py-2 bg-[#FAF9F7] border border-[#E6D5C3] text-[#3E2723] hover:bg-[#F5F1EE] font-bold text-xs rounded-xl cursor-pointer"
                 >
                   + Add Tag
                 </button>
@@ -554,8 +791,12 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-[#E6D5C3]">
-            <button type="button" onClick={() => setStep(3)} className="px-4 py-2 text-xs font-semibold text-[#8C7355]">
-              ← Back to Voice
+            <button
+              type="button"
+              onClick={() => setStep(3)}
+              className="px-4 py-2 text-xs font-semibold text-[#8C7355] hover:text-[#3E2723] cursor-pointer"
+            >
+              ← Back to Text Identification
             </button>
             <button
               type="button"
@@ -563,7 +804,7 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
                 setStep(5);
                 handleFetchPriceSuggestion();
               }}
-              className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl shadow-xs"
+              className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl shadow-xs cursor-pointer"
             >
               Continue to Fair Pricing →
             </button>
@@ -583,6 +824,13 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
                 KalaKriti benchmarks artisan labor, material costs, and market rates so you always earn a fair wage.
               </p>
             </div>
+            <button
+              type="button"
+              onClick={handleSafeCancel}
+              className="text-xs font-semibold text-[#8C7355] hover:text-[#3E2723] px-2.5 py-1 rounded-md hover:bg-[#FAF9F7]"
+            >
+              Exit
+            </button>
           </div>
 
           {/* AI Price Calculation Card */}
@@ -649,13 +897,17 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-[#E6D5C3]">
-            <button type="button" onClick={() => setStep(4)} className="px-4 py-2 text-xs font-semibold text-[#8C7355]">
+            <button
+              type="button"
+              onClick={() => setStep(4)}
+              className="px-4 py-2 text-xs font-semibold text-[#8C7355] hover:text-[#3E2723] cursor-pointer"
+            >
               ← Back to Review
             </button>
             <button
               type="button"
               onClick={handlePublish}
-              className="flex items-center gap-2 px-8 py-3 text-sm font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl shadow-md hover:scale-[1.02] transition-all"
+              className="flex items-center gap-2 px-8 py-3 text-sm font-bold text-white bg-[#8B5E34] hover:bg-[#734B26] rounded-xl shadow-md hover:scale-[1.02] transition-all cursor-pointer"
             >
               <Check className="w-4 h-4" /> Publish Product to KalaKriti Marketplace
             </button>
@@ -671,6 +923,7 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
         onTranscriptComplete={(text) => {
           setVoiceText(text);
           setIsVoiceModalOpen(false);
+          setStep3Error('');
         }}
       />
     </div>

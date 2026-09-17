@@ -8,12 +8,16 @@ import {
   AppNotification,
   CartItem,
   ShippingDetails,
+  CustomizationRequest,
+  AuthSession,
+  CustomerType,
 } from './types';
 import {
   INITIAL_PRODUCTS,
   INITIAL_ARTISAN_PROFILE,
   INITIAL_ORDERS,
   INITIAL_NOTIFICATIONS,
+  INITIAL_CUSTOMIZATIONS,
 } from './data/initialData';
 import { Navbar } from './components/Navbar';
 import { CustomerShop } from './components/CustomerShop';
@@ -28,19 +32,90 @@ import { AdminView } from './components/AdminView';
 import { NotificationCenter } from './components/NotificationCenter';
 import { AskKalaKritiAiModal } from './components/AskKalaKritiAiModal';
 import { KalaKritiLogo } from './components/KalaKritiLogo';
-import { RoleSelectorView } from './components/RoleSelectorView';
-import { Sparkles, Bot, ShoppingBag, Truck, Heart, ArrowUp } from 'lucide-react';
+import { KalaKritiLoginView } from './components/KalaKritiLoginView';
+import { Sparkles, Bot, ShoppingBag, Truck, Heart, ArrowUp, ShieldAlert } from 'lucide-react';
 
 export default function App() {
-  // Persistence State
-  const [currentRole, setCurrentRole] = useState<Role>('customer');
-  const [activeView, setActiveView] = useState<string>('portal-select');
+  // Authentication & Session Persistence
+  const [authSession, setAuthSession] = useState<AuthSession | null>(() => {
+    try {
+      const saved = localStorage.getItem('kalakriti_auth_session');
+      if (saved) {
+        const parsed: AuthSession = JSON.parse(saved);
+        if (parsed && parsed.isAuthenticated) {
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return null;
+  });
+
+  // Calculate default view based on authenticated session
+  const getInitialView = (session: AuthSession | null): string => {
+    if (!session || !session.isAuthenticated) return 'login';
+    if (session.role === 'artisan') return 'artisan-dashboard';
+    if (session.role === 'customer') {
+      if (!session.customerType) return 'customer-type-select';
+      if (session.customerType === 'b2b') return 'b2b';
+      return 'home';
+    }
+    return 'login';
+  };
+
+  const [activeView, setActiveView] = useState<string>(() => {
+    // Check saved session on boot
+    try {
+      const saved = localStorage.getItem('kalakriti_auth_session');
+      if (saved) {
+        const parsed: AuthSession = JSON.parse(saved);
+        return getInitialView(parsed);
+      }
+    } catch {
+      // ignore
+    }
+    return 'login';
+  });
+
+  const [currentRole, setCurrentRole] = useState<Role>(() => {
+    try {
+      const saved = localStorage.getItem('kalakriti_auth_session');
+      if (saved) {
+        const parsed: AuthSession = JSON.parse(saved);
+        if (parsed?.role === 'artisan') return 'artisan';
+        if (parsed?.role === 'customer') {
+          return parsed.customerType === 'b2b' ? 'b2b' : 'customer';
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return 'customer';
+  });
+
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Domain State
+  // Domain State with Clean Reset for Artisan Profile & Orders & Requests (per user request)
   const [products, setProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('kalakriti_products');
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
+    try {
+      const isReset = localStorage.getItem('kalakriti_artisan_clean_reset_v5');
+      if (!isReset) {
+        localStorage.setItem('kalakriti_artisan_clean_reset_v5', 'true');
+        localStorage.setItem('kalakriti_products', JSON.stringify([]));
+        localStorage.setItem('kalakriti_orders', JSON.stringify([]));
+        localStorage.setItem('kalakriti_customizations', JSON.stringify([]));
+        localStorage.setItem('kalakriti_notifications', JSON.stringify([]));
+        return [];
+      }
+      const saved = localStorage.getItem('kalakriti_products');
+      const parsed: Product[] = saved ? JSON.parse(saved) : [];
+      const deletedRaw = localStorage.getItem('kalakriti_deleted_product_ids');
+      const deletedIds: string[] = deletedRaw ? JSON.parse(deletedRaw) : [];
+      return parsed.filter((p) => !deletedIds.includes(p.id));
+    } catch {
+      return [];
+    }
   });
 
   const [artisanProfile, setArtisanProfile] = useState<ArtisanProfile>(() => {
@@ -49,19 +124,37 @@ export default function App() {
   });
 
   const [orders, setOrders] = useState<Order[]>(() => {
+    const isReset = localStorage.getItem('kalakriti_artisan_clean_reset_v5');
+    if (!isReset) {
+      return [];
+    }
     const saved = localStorage.getItem('kalakriti_orders');
-    return saved ? JSON.parse(saved) : INITIAL_ORDERS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
+    const isReset = localStorage.getItem('kalakriti_artisan_clean_reset_v5');
+    if (!isReset) {
+      return [];
+    }
     const saved = localStorage.getItem('kalakriti_notifications');
-    return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [cart, setCart] = useState<CartItem[]>(() => {
     const saved = localStorage.getItem('kalakriti_cart');
     return saved ? JSON.parse(saved) : [];
   });
+
+  const [customizations, setCustomizations] = useState<CustomizationRequest[]>(() => {
+    const isReset = localStorage.getItem('kalakriti_artisan_clean_reset_v5');
+    if (!isReset) {
+      return [];
+    }
+    const saved = localStorage.getItem('kalakriti_customizations');
+    return saved ? JSON.parse(saved) : [];
+  });
+
 
   const [savedShippingDetails, setSavedShippingDetails] = useState<ShippingDetails>(() => {
     const saved = localStorage.getItem('kalakriti_shipping_details');
@@ -110,6 +203,10 @@ export default function App() {
   }, [cart]);
 
   useEffect(() => {
+    localStorage.setItem('kalakriti_customizations', JSON.stringify(customizations));
+  }, [customizations]);
+
+  useEffect(() => {
     localStorage.setItem('kalakriti_shipping_details', JSON.stringify(savedShippingDetails));
   }, [savedShippingDetails]);
 
@@ -119,25 +216,126 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Handle Role Switch
-  const handleRoleChange = (newRole: Role) => {
-    setCurrentRole(newRole);
-    if (newRole === 'customer') setActiveView('home');
-    else if (newRole === 'artisan') setActiveView('artisan-dashboard');
-    else if (newRole === 'b2b') setActiveView('b2b');
-    else if (newRole === 'catalog') setActiveView('catalog');
-    else if (newRole === 'admin') setActiveView('admin');
+  // Login Handler
+  const handleLoginSuccess = (session: AuthSession) => {
+    setAuthSession(session);
+    localStorage.setItem('kalakriti_auth_session', JSON.stringify(session));
+
+    if (session.role === 'artisan') {
+      setCurrentRole('artisan');
+      setActiveView('artisan-dashboard');
+      showToast('✓ Welcome back, Radhaben! Signed in to Artisan Workshop.');
+    } else if (session.role === 'customer') {
+      if (!session.customerType) {
+        setCurrentRole('customer');
+        setActiveView('customer-type-select');
+      } else if (session.customerType === 'b2b') {
+        setCurrentRole('b2b');
+        setActiveView('b2b');
+        showToast(`✓ Welcome back, ${session.userName}! Signed in to B2B Wholesale.`);
+      } else {
+        setCurrentRole('customer');
+        setActiveView('home');
+        showToast(`✓ Welcome back, ${session.userName}! Enjoy handcrafted shopping.`);
+      }
+    }
   };
 
-  const handlePortalSelect = (selectedRole: Role) => {
-    handleRoleChange(selectedRole);
+  // Logout Handler
+  const handleLogout = () => {
+    localStorage.removeItem('kalakriti_auth_session');
+    setAuthSession(null);
+    setCurrentRole('customer');
+    setActiveView('login');
+    showToast('✓ Logged out successfully.');
+  };
+
+  // Customer Type Switcher (Only for customers)
+  const handleSwitchCustomerType = (newType: CustomerType) => {
+    if (!authSession || authSession.role !== 'customer') return;
+    const updated: AuthSession = {
+      ...authSession,
+      customerType: newType,
+    };
+    setAuthSession(updated);
+    localStorage.setItem('kalakriti_auth_session', JSON.stringify(updated));
+
+    if (newType === 'b2b') {
+      setCurrentRole('b2b');
+      setActiveView('b2b');
+      showToast('✓ Switched to B2B Wholesale Portal.');
+    } else {
+      setCurrentRole('customer');
+      setActiveView('home');
+      showToast('✓ Switched to Personal Shopping Marketplace.');
+    }
+  };
+
+  // STRICT Central Route Guard
+  const handleGuardedNavigate = (requestedView: string, params?: any) => {
+    // 1. Not Authenticated
+    if (!authSession || !authSession.isAuthenticated) {
+      if (requestedView !== 'login' && requestedView !== 'customer-type-select') {
+        showToast('⚠️ Please sign in to access KalaKriti.');
+        setActiveView('login');
+        return;
+      }
+      setActiveView(requestedView);
+      return;
+    }
+
+    // 2. Logged in as Artisan
+    if (authSession.role === 'artisan') {
+      if (requestedView === 'artisan-dashboard') {
+        setActiveView('artisan-dashboard');
+        return;
+      }
+      // Strictly prevent artisan from accessing customer shop, b2b, or admin
+      showToast('⚠️ Access restricted: Artisans can only access the Artisan Workshop.');
+      setActiveView('artisan-dashboard');
+      return;
+    }
+
+    // 3. Logged in as Customer
+    if (authSession.role === 'customer') {
+      // Strictly prevent customer from accessing artisan dashboard or admin
+      if (requestedView === 'artisan-dashboard' || requestedView === 'admin') {
+        showToast('⚠️ Access restricted: Customer accounts cannot access the Artisan portal.');
+        setActiveView(authSession.customerType === 'b2b' ? 'b2b' : 'home');
+        return;
+      }
+
+      if (requestedView === 'customer-type-select') {
+        setActiveView('customer-type-select');
+        return;
+      }
+
+      if (authSession.customerType === 'b2b') {
+        if (requestedView === 'b2b' || requestedView === 'catalog') {
+          setActiveView(requestedView);
+        } else {
+          showToast('Notice: Active as B2B Buyer. Switch customer profile for retail shopping.');
+          setActiveView('b2b');
+        }
+        return;
+      }
+
+      // Individual Customer
+      if (['home', 'my-orders', 'checkout', 'catalog'].includes(requestedView)) {
+        setActiveView(requestedView);
+      } else {
+        setActiveView('home');
+      }
+    }
   };
 
   const handleLandingSearch = (query: string) => {
     setSearchQuery(query);
-    setCurrentRole('customer');
-    setActiveView('home');
+    if (authSession?.role === 'customer' && authSession.customerType === 'individual') {
+      setActiveView('home');
+    }
   };
+
 
   // Cart Operations
   const handleAddToCart = (e: React.MouseEvent | null, product: Product) => {
@@ -509,6 +707,16 @@ export default function App() {
 
   // Publish / Edit Product
   const handleProductPublished = (newProd: Product) => {
+    // Unmark from deleted list if ID was reused
+    try {
+      const deletedRaw = localStorage.getItem('kalakriti_deleted_product_ids');
+      const deletedIds: string[] = deletedRaw ? JSON.parse(deletedRaw) : [];
+      const updated = deletedIds.filter((id) => id !== newProd.id);
+      localStorage.setItem('kalakriti_deleted_product_ids', JSON.stringify(updated));
+    } catch {
+      // Ignore
+    }
+
     setProducts((prev) => {
       const exists = prev.some((p) => p.id === newProd.id);
       if (exists) {
@@ -516,7 +724,132 @@ export default function App() {
       }
       return [newProd, ...prev];
     });
+
+    // Real-time Notification for Product Publication
+    const pubNotif: AppNotification = {
+      id: 'notif_pub_' + Date.now(),
+      recipientRole: 'artisan',
+      recipientId: artisanProfile.id,
+      title: '🎉 Product Published to Catalog!',
+      message: `"${newProd.name}" is now live in the Master Catalog & Customer Marketplace.`,
+      type: 'order_placed',
+      timestamp: Date.now(),
+      read: false,
+    };
+    setNotifications((prev) => [pubNotif, ...prev]);
     showToast(`✨ Product "${newProd.name.slice(0, 25)}..." published successfully!`);
+  };
+
+  // Persistent Delete Product & Associated Delivery/Order Requests
+  const handleDeleteProduct = (productId: string) => {
+    const targetProduct = products.find((p) => p.id === productId);
+    const prodName = targetProduct?.name;
+
+    setProducts((prev) => prev.filter((p) => p.id !== productId));
+    setCart((prev) => prev.filter((item) => item.product.id !== productId));
+
+    // Cascade delete: Remove orders and delivery requests containing this product
+    setOrders((prev) =>
+      prev.filter((order) => !order.items.some((item) => item.product.id === productId))
+    );
+
+    // Cascade delete: Remove customization requests for this product
+    setCustomizations((prev) =>
+      prev.filter((cust) => cust.productId !== productId)
+    );
+
+    // Cascade delete: Clean up notifications referencing this product
+    setNotifications((prev) =>
+      prev.filter((notif) => {
+        if (prodName && notif.message.includes(prodName)) return false;
+        return true;
+      })
+    );
+
+    // Persist to deleted IDs set so it NEVER reappears
+    try {
+      const deletedRaw = localStorage.getItem('kalakriti_deleted_product_ids');
+      const deletedIds: string[] = deletedRaw ? JSON.parse(deletedRaw) : [];
+      if (!deletedIds.includes(productId)) {
+        deletedIds.push(productId);
+        localStorage.setItem('kalakriti_deleted_product_ids', JSON.stringify(deletedIds));
+      }
+    } catch {
+      // Ignore
+    }
+
+    setSelectedProduct(null);
+    showToast('🗑️ Product and associated delivery & order requests deleted.');
+  };
+
+  // Customization Request Handlers
+  const handleRequestCustomization = (
+    reqData: Omit<CustomizationRequest, 'id' | 'createdAt' | 'status'>
+  ) => {
+    const newReq: CustomizationRequest = {
+      ...reqData,
+      id: 'cust_' + Date.now(),
+      createdAt: Date.now(),
+      status: 'Pending',
+    };
+
+    setCustomizations((prev) => [newReq, ...prev]);
+
+    // Notify Artisan
+    const artisanNotif: AppNotification = {
+      id: 'notif_artisan_cust_' + Date.now(),
+      recipientRole: 'artisan',
+      recipientId: reqData.artisanId,
+      title: '✨ New Custom Craft Request',
+      message: `${reqData.customerName} requested a custom variant for "${reqData.productName}" (Color: ${reqData.color}, Size: ${reqData.size}).`,
+      type: 'order_received',
+      timestamp: Date.now(),
+      read: false,
+    };
+
+    // Notify Buyer
+    const buyerNotif: AppNotification = {
+      id: 'notif_buyer_cust_' + Date.now(),
+      recipientRole: 'customer',
+      title: '✓ Customization Request Sent',
+      message: `Your custom craft request for "${reqData.productName}" was delivered directly to ${reqData.artisanName}.`,
+      type: 'order_received',
+      timestamp: Date.now() + 2,
+      read: false,
+    };
+
+    setNotifications((prev) => [buyerNotif, artisanNotif, ...prev]);
+    showToast('✓ Custom craft request sent directly to artisan!');
+  };
+
+  const handleUpdateCustomizationStatus = (
+    id: string,
+    status: 'Accepted' | 'Declined',
+    details?: { agreedPrice?: number; estimatedDays?: number; artisanResponse?: string }
+  ) => {
+    setCustomizations((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, status, ...details } : c))
+    );
+
+    const targetReq = customizations.find((c) => c.id === id);
+    if (targetReq) {
+      const buyerNotif: AppNotification = {
+        id: 'notif_cust_update_' + Date.now(),
+        recipientRole: 'customer',
+        title: status === 'Accepted' ? '✨ Customization Request Accepted!' : 'Customization Request Update',
+        message:
+          status === 'Accepted'
+            ? `${targetReq.artisanName} accepted your custom craft request for "${targetReq.productName}"! Estimated time: ~${details?.estimatedDays || 7} days.`
+            : `${targetReq.artisanName} was unable to accept your request: "${details?.artisanResponse || 'Capacity reached'}".`,
+        type: 'order_received',
+        timestamp: Date.now(),
+        read: false,
+      };
+
+      setNotifications((prev) => [buyerNotif, ...prev]);
+    }
+
+    showToast(status === 'Accepted' ? '✓ Custom craft request accepted!' : 'Custom request declined.');
   };
 
   const handleNotificationClick = (notif: AppNotification) => {
@@ -535,7 +868,8 @@ export default function App() {
     }
   };
 
-  if (activeView === 'portal-select') {
+  // 1. Unauthenticated or Explicit Login View
+  if (!authSession || !authSession.isAuthenticated || activeView === 'login') {
     return (
       <>
         {/* Toast Notification Banner */}
@@ -546,10 +880,38 @@ export default function App() {
           </div>
         )}
 
-        <RoleSelectorView
-          onSelectRole={handlePortalSelect}
-          onSearch={handleLandingSearch}
+        <KalaKritiLoginView
+          onLoginSuccess={handleLoginSuccess}
           onOpenAskAi={() => setIsAskAiOpen(true)}
+          initialStep="choose-role"
+        />
+
+        {/* AI Assistant Chat Modal */}
+        <AskKalaKritiAiModal
+          isOpen={isAskAiOpen}
+          onClose={() => setIsAskAiOpen(false)}
+        />
+      </>
+    );
+  }
+
+  // 2. Customer Type Selection step (if customer logged in but needs to pick/switch type)
+  if (activeView === 'customer-type-select') {
+    return (
+      <>
+        {/* Toast Notification Banner */}
+        {toastMessage && (
+          <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-[#3E2723] text-white px-5 py-2.5 rounded-full shadow-2xl text-xs font-semibold flex items-center gap-2 border border-[#E6D5C3]/30 animate-in fade-in slide-in-from-top-3">
+            <Sparkles className="w-4 h-4 text-[#A68B6D]" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
+        <KalaKritiLoginView
+          onLoginSuccess={handleLoginSuccess}
+          onOpenAskAi={() => setIsAskAiOpen(true)}
+          initialStep="customer-type-select"
+          pendingCustomerSession={authSession}
         />
 
         {/* AI Assistant Chat Modal */}
@@ -571,20 +933,31 @@ export default function App() {
         </div>
       )}
 
-      {/* Header Navigation with Portal Selector Switcher */}
+      {/* Header Navigation with Portal Selector Switcher & Role Badging */}
       <Navbar
         currentRole={currentRole}
-        onRoleChange={handleRoleChange}
+        onRoleChange={() => {}}
         activeView={activeView}
-        onNavigate={(v) => setActiveView(v)}
+        onNavigate={handleGuardedNavigate}
         cartCount={cart.reduce((sum, i) => sum + i.quantity, 0)}
         notifications={notifications}
         onOpenNotifications={() => setIsNotificationsOpen(true)}
         onOpenCart={() => setIsCartOpen(true)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onOpenPortalSelect={() => setActiveView('portal-select')}
+        onOpenPortalSelect={() => {
+          if (authSession?.role === 'customer') {
+            setActiveView('customer-type-select');
+          } else {
+            showToast('Artisans operate exclusively in the Artisan Workshop.');
+          }
+        }}
+        authSession={authSession}
+        onLogout={handleLogout}
+        onSwitchCustomerType={handleSwitchCustomerType}
+        onOpenCustomerTypeSelect={() => setActiveView('customer-type-select')}
       />
+
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -594,13 +967,14 @@ export default function App() {
             onSelectProduct={(p) => setSelectedProduct(p)}
             onAddToCart={(e, p) => handleAddToCart(e, p)}
             searchQuery={searchQuery}
-            onNavigateToArtisan={() => handleRoleChange('artisan')}
+            onNavigateToArtisan={() => handleGuardedNavigate('artisan-dashboard')}
           />
         )}
 
         {activeView === 'my-orders' && (
           <CustomerOrdersView
             orders={orders}
+            customizations={customizations}
             onOpenProduct={(productId) => {
               const p = products.find((x) => x.id === productId);
               if (p) setSelectedProduct(p);
@@ -638,7 +1012,10 @@ export default function App() {
             }}
             products={products}
             orders={orders}
+            customizations={customizations}
+            onUpdateCustomizationStatus={handleUpdateCustomizationStatus}
             onProductPublished={handleProductPublished}
+            onDeleteProduct={handleDeleteProduct}
             onUpdateOrderStatus={handleUpdateOrderStatus}
             onSelectProduct={(p) => setSelectedProduct(p)}
             onOpenAskAi={() => setIsAskAiOpen(true)}
@@ -664,6 +1041,7 @@ export default function App() {
             products={products}
             orders={orders}
             artisanProfile={artisanProfile}
+            onExitAdmin={() => handleGuardedNavigate('home')}
           />
         )}
       </main>
@@ -723,10 +1101,12 @@ export default function App() {
         onBuyNow={handleDirectBuyNow}
         currentArtisanProfile={artisanProfile}
         currentRole={currentRole}
+        onDeleteProduct={handleDeleteProduct}
         onEditProduct={(p) => {
           setSelectedProduct(null);
           setActiveView('artisan-dashboard');
         }}
+        onRequestCustomization={handleRequestCustomization}
       />
 
       {/* Footer */}
@@ -735,41 +1115,67 @@ export default function App() {
           <div className="flex flex-wrap items-center justify-between gap-6 pb-8 border-b border-[#E6D5C3]/20">
             <KalaKritiLogo size="md" showSubtitle={true} textColor="text-white" />
             <div className="flex items-center gap-6 text-xs text-[#E6D5C3]">
-              <button
-                type="button"
-                onClick={() => handleRoleChange('customer')}
-                className="hover:text-white"
-              >
-                Customer Shop
-              </button>
-              <button
-                type="button"
-                onClick={() => handleRoleChange('artisan')}
-                className="hover:text-white"
-              >
-                Artisan Portal
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveView('my-orders')}
-                className="hover:text-white"
-              >
-                Live Delivery Tracking
-              </button>
-              <button
-                type="button"
-                onClick={() => handleRoleChange('b2b')}
-                className="hover:text-white"
-              >
-                B2B Bulk Sourcing
-              </button>
-              <button
-                type="button"
-                onClick={() => handleRoleChange('admin')}
-                className="hover:text-white"
-              >
-                Platform Trust & Admin
-              </button>
+              {authSession?.role === 'customer' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleGuardedNavigate('home')}
+                    className="hover:text-white transition-colors"
+                  >
+                    Customer Shop
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleGuardedNavigate('my-orders')}
+                    className="hover:text-white transition-colors"
+                  >
+                    Live Delivery Tracking
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSwitchCustomerType(authSession.customerType === 'b2b' ? 'individual' : 'b2b')}
+                    className="hover:text-white transition-colors underline decoration-dotted"
+                  >
+                    {authSession.customerType === 'b2b' ? 'Switch to Retail Shop' : 'Switch to B2B Wholesale'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="hover:text-[#E8927C] transition-colors"
+                  >
+                    Sign Out ({authSession.userName})
+                  </button>
+                </>
+              ) : authSession?.role === 'artisan' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleGuardedNavigate('artisan-dashboard')}
+                    className="hover:text-white font-medium transition-colors"
+                  >
+                    Artisan Workshop
+                  </button>
+                  <span className="text-[#A68B6D]">|</span>
+                  <span className="text-[#E6D5C3]/70 text-xs">
+                    Signed in as Radhaben
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="hover:text-[#E8927C] transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setActiveView('login')}
+                  className="hover:text-white transition-colors"
+                >
+                  Sign In
+                </button>
+              )}
             </div>
           </div>
 
