@@ -1,7 +1,7 @@
 import { Product, ArtisanProfile, Order, AppNotification, B2BInquiry, CustomizationRequest } from '../types';
 
 export const INITIAL_ARTISAN_PROFILE: ArtisanProfile = {
-  id: 'artisan_radhaben',
+  id: '24453845-be88-44fc-b500-44c50344d2bb',
   name: 'Radhaben Vankar',
   craft: 'Traditional Kutch Handloom Weaving & Natural Dyes',
   location: 'Bhuj, Kutch, Gujarat',

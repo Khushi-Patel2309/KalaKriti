@@ -1,3 +1,4 @@
+import { supabase } from './lib/supabase'
 import React, { useState, useEffect } from 'react';
 import {
   Role,
@@ -36,6 +37,17 @@ import { KalaKritiLoginView } from './components/KalaKritiLoginView';
 import { Sparkles, Bot, ShoppingBag, Truck, Heart, ArrowUp, ShieldAlert } from 'lucide-react';
 
 export default function App() {
+  useEffect(() => {
+  const testSupabase = async () => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*');
+
+    console.log('SUPABASE TEST:', { data, error });
+  };
+
+  testSupabase();
+}, []);
   // Authentication & Session Persistence
   const [authSession, setAuthSession] = useState<AuthSession | null>(() => {
     try {

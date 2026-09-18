@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { Product, ProductCategory, ArtisanProfile } from '../types';
 import { PhotoEnhancerStudio } from './PhotoEnhancerStudio';
 import { VoiceRecorderModal } from './VoiceRecorderModal';
@@ -281,16 +282,71 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
   };
 
   // Publish Product Handler
-  const handlePublish = () => {
+  const handlePublish = async () => {
+    console.log('ARTISAN PROFILE BEING USED:', artisanProfile);
+  try {
+    // 1. Find the selected category in Supabase
+    let { data: categoryData, error: categoryError } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('name', category)
+      .maybeSingle();
+
+    if (categoryError) {
+      throw categoryError;
+    }
+
+    // 2. If the category doesn't exist, create it
+    if (!categoryData) {
+  throw new Error(`Category "${category}" not found in the database.`);
+}
+
+    // 3. Insert the product into Supabase
+    const { data: savedProduct, error: productError } = await supabase
+      .from('products')
+      .insert({
+        artisan_id: artisanProfile.id,
+        category_id: categoryData.id,
+        name: name || 'Handcrafted Heritage Item',
+        description:
+          descriptionEnglish ||
+          'Exquisitely handcrafted by master artisan.',
+        hindi_description:
+          descriptionHindi ||
+          'मास्टर कारीगर द्वारा पारंपरिक विरासत तकनीकों से निर्मित हस्तशिल्प।',
+        price: price,
+        quantity: quantity,
+        material: materials || 'Authentic natural materials',
+        technique: craftTechnique || 'Traditional Indian Handcraft',
+        color: color || 'Natural earth tones',
+        craft_type: category,
+        image_url: enhancedPhoto || originalPhoto || null,
+        status: 'published',
+        ai_generated: true,
+      })
+      .select()
+      .single();
+
+    if (productError) {
+      throw productError;
+    }
+
+    console.log('PRODUCT SAVED TO SUPABASE:', savedProduct);
+
+    // 4. Create the Product object your existing website expects
     const newProduct: Product = {
-      id: initialProductToEdit?.id || 'prod_' + Date.now(),
+      id: savedProduct.id,
       name: name || 'Handcrafted Heritage Item',
       category,
       materials: materials || 'Authentic natural materials',
       color: color || 'Natural earth tones',
       craftTechnique: craftTechnique || 'Traditional Indian Handcraft',
-      descriptionEnglish: descriptionEnglish || 'Exquisitely handcrafted by master artisan.',
-      descriptionHindi: descriptionHindi || 'मास्टर कारीगर द्वारा पारंपरिक विरासत तकनीकों से निर्मित हस्तशिल्प।',
+      descriptionEnglish:
+        descriptionEnglish ||
+        'Exquisitely handcrafted by master artisan.',
+      descriptionHindi:
+        descriptionHindi ||
+        'पारंपरिक विरासत तकनीकों से निर्मित हस्तशिल्प।',
       tags,
       price,
       oldPrice: Math.round(price * 1.25),
@@ -300,20 +356,31 @@ export const AddProductWizard: React.FC<AddProductWizardProps> = ({
       quantity,
       status: 'published',
       emoji: '🪷',
-      views: initialProductToEdit?.views || 0,
-      sold: initialProductToEdit?.sold || 0,
+      views: 0,
+      sold: 0,
       imageOriginal: originalPhoto,
       imageEnhanced: enhancedPhoto || originalPhoto,
       enhanceMode,
       artisanId: artisanProfile.id,
       artisanName: artisanProfile.name,
       artisanLocation: artisanProfile.location,
-      createdAt: initialProductToEdit?.createdAt || Date.now(),
+      createdAt: Date.now(),
     };
 
     sessionStorage.removeItem('kalakriti_wizard_draft');
+
+    // 5. Update the existing dashboard
     onProductPublished(newProduct);
-  };
+
+  } catch (error: any) {
+    console.error('ERROR SAVING PRODUCT:', error);
+    alert(
+      `Unable to publish product: ${
+        error?.message || 'Unknown database error'
+      }`
+    );
+  }
+};
 
   const handleSafeCancel = () => {
     sessionStorage.removeItem('kalakriti_wizard_draft');

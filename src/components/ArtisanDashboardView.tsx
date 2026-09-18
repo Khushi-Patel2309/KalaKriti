@@ -9,7 +9,8 @@ import { ArtisanCustomizationManagement } from './ArtisanCustomizationManagement
 import { Package, Plus, User, Sparkles, TrendingUp, IndianRupee, Eye, ShoppingBag, Truck, Award, Zap } from 'lucide-react';
 
 interface ArtisanDashboardViewProps {
-  profile: ArtisanProfile;
+  profile:
+   ArtisanProfile;
   onUpdateProfile: (p: ArtisanProfile) => void;
   products: Product[];
   orders: Order[];

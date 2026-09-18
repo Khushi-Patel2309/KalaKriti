@@ -96,7 +96,7 @@ export const KalaKritiLoginView: React.FC<KalaKritiLoginViewProps> = ({
       const session: AuthSession = {
         isAuthenticated: true,
         role: 'artisan',
-        userId: 'artisan_radhaben',
+        userId: '24453845-be88-44fc-b500-44c50344d2bb',
         userName: 'Radhaben Vankar',
         userEmail: artisanIdentifier.includes('@') ? artisanIdentifier : 'radhaben.crafts@kalakriti.in',
         userPhone: !artisanIdentifier.includes('@') ? artisanIdentifier : '+91 98765 43210',
